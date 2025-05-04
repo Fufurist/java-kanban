@@ -1,2 +1,3 @@
 # java-kanban
-Repository for homework project.
+Проект Спринта 4  
+Подготовил Григорьев Иван.
