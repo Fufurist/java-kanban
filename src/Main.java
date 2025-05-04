@@ -1,3 +1,5 @@
+import java.io.FilterOutputStream;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -55,9 +57,10 @@ public class Main {
         System.out.println(newSubTask.getStatus());
         System.out.println(newSubTask.getEpicId());
 
-        newSubTask = new SubTask(5,"Сделать ДЗ по Диффурам",
-                "Достать Тетрать, достать Филлипова, сделать номера ...", TaskStatus.IN_PROGRESS, 1);
+        newSubTask = new SubTask(newSubTask.getId(),newSubTask.getName(),
+                newSubTask.getDescription(), TaskStatus.IN_PROGRESS, newSubTask.getEpicId());
         taskManager.update(newSubTask);
+        //Как сделать изменение статуса задачи
         System.out.println(taskManager.getById(5).getStatus());
 
         System.out.println();
@@ -70,5 +73,18 @@ public class Main {
         System.out.println(newEpic.getStatus());
         System.out.println(newEpic.getSubTasksIds());
         System.out.println();
+
+        System.out.println(taskManager.getEpicSubTasks(1));
+        System.out.println(taskManager.getEpicSubTasks(4));
+        System.out.println();
+
+        taskManager.remove(0);
+        taskManager.remove(1);
+        System.out.println(taskManager.getTasks());
+
+        newSubTask = new SubTask(6,"Быстро выполнить пятый спринт",
+                "Поторопись! До конца света осталось всего ничего!", TaskStatus.DONE, 4);//мечты
+        taskManager.update(newSubTask);
+        System.out.println(taskManager.getById(4).getStatus());//вывод статуса эпика, в котором лежала подзадача
     }
 }
