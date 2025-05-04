@@ -62,4 +62,5 @@ public class Task {
     public TaskStatus getStatus() { //Пригодится
         return status;
     }
+
 }
