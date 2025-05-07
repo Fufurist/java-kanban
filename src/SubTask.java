@@ -1,12 +1,7 @@
 public class SubTask extends Task {
     private final int epicId;
 
-    public SubTask(String name, String description, TaskStatus status, int epicId) {
-        super(name, description, status);
-        this.epicId = epicId;
-        //При создании подзадачи уже известен её эпик
-    }
-
+    //также единственный конструктор. При перезаписи поле принадлежности к эпику все равно будет игнорироваться
     public SubTask(int id, String name, String description, TaskStatus status, int epicId) {
         super(id, name, description, status);
         this.epicId = epicId;

@@ -3,16 +3,10 @@ import java.util.ArrayList;
 public class Epic extends Task {
     private final ArrayList<Integer> subTasksIds;
 
-    public Epic(String name, String description, TaskStatus status) {
-        super(name, description, status);
-        this.subTasksIds = new ArrayList<>();
-        //Новый эпик всегда создаётся первым, а потом к нему цепляются подзадачи
-    }
-
-    public Epic(int id, String name, String description, TaskStatus status, ArrayList<Integer> subclassesIds) {
+    //Поскольку теперь менеджер сам меняет поля, пользователям не нужно самим указывать список подзадач
+    public Epic(int id, String name, String description, TaskStatus status) {
         super(id, name, description, status);
-        this.subTasksIds = subclassesIds;
-        //Создание нового эпика на замену существующему
+        this.subTasksIds = new ArrayList<>();
     }
 
     public void addSubTask(int subTaskId) {
@@ -20,6 +14,15 @@ public class Epic extends Task {
     }
 
     public ArrayList<Integer> getSubTasksIds() {
-        return subTasksIds;
+        return new ArrayList<>(subTasksIds);
+    }
+
+    //сделаю все методы, где может возникнуть ошибка булевскими, и не буду допускать ошибок
+    public void removeSubTaskId(int id) {
+        subTasksIds.remove(id);
+    }
+
+    public void removeAllSubTasks() {
+        subTasksIds.clear();
     }
 }

@@ -1,0 +1,83 @@
+
+
+        TaskManager taskManager = new TaskManager();
+        Task newTask = new Task(0, "Помыть посуду",
+                "Прийти на кухню и вымыть все грязные тарелки", TaskStatus.NEW);
+        taskManager.addTask(newTask);
+        System.out.println(taskManager.getTasks());//да, он выводит список ссылок, но хотя бы наглядно
+
+        Epic newEpic = new Epic(0, "Сделать домашку",
+                "По очереди выполнить домашнее задание по всем предметам", TaskStatus.NEW);
+        taskManager.addTask(newEpic);
+        System.out.println(taskManager.getTasks());
+
+        SubTask newSubTask = new SubTask(0, "Сделать ДЗ по Матану",
+                "Достать Тетрадь, достать Демидовича, сделать номера ...", TaskStatus.NEW, 1);
+        taskManager.addTask(newSubTask);
+        //Если заменить epicId на тот, что не ссылается на Эпик, то подзадача не добавится - проверено
+        //Согласно ТЗ это правильное выполнение добавления новой задачи, однако без исключений я не смогу отследить,
+        //что элемент не был добавлен.
+        System.out.println(taskManager.getTasks());
+
+        newTask = new Task(0,"Подмести пол",
+                "Достать совок и метлу, смести мусор в совок, выкинуть мусор из совка", TaskStatus.NEW);
+        taskManager.addTask(newTask);
+        System.out.println(taskManager.getTasks());
+        //задача с ID 3 добавилась в середину списка - это правильное поведение в моей реализации
+
+        newEpic = new Epic(0, "Успеть всё",
+                "Осталось всего 22 часа, пора поторопиться и завершить этот модуль!", TaskStatus.IN_PROGRESS);
+        //поставил в прогрессе, чтобы проверить, что автоподстройка статуса эпика работает
+        taskManager.addTask(newEpic);
+        System.out.println(taskManager.getTasks());
+        System.out.println(taskManager.getById(4).getStatus());
+
+        newSubTask = new SubTask(0, "Сделать ДЗ по Диффурам",
+                "Достать Тетрадь, достать Филлипова, сделать номера ...", TaskStatus.NEW, 1);
+        taskManager.addTask(newSubTask);
+        System.out.println(taskManager.getTasks());
+        System.out.println(((SubTask) taskManager.getById(5)).getEpicId());
+
+        newSubTask = new SubTask(0, "Быстро выполнить пятый спринт",
+                "Поторопись! До конца света осталось всего ничего!", TaskStatus.NEW, 4);
+        taskManager.addTask(newSubTask);
+        System.out.println(taskManager.getTasks());
+        System.out.println();
+
+        newSubTask = (SubTask) taskManager.getById(5);
+        //необходимое преобразование, потому что общей функцией можно вытащить только общий родительский класс
+        System.out.println(newSubTask.getId());
+        System.out.println(newSubTask.getName());
+        System.out.println(newSubTask.getDescription());
+        System.out.println(newSubTask.getStatus());
+        System.out.println(newSubTask.getEpicId());
+
+        newSubTask = new SubTask(newSubTask.getId(),newSubTask.getName(),
+                newSubTask.getDescription(), TaskStatus.IN_PROGRESS, newSubTask.getEpicId());
+        taskManager.update(newSubTask);
+        //Как сделать изменение статуса задачи
+        System.out.println(taskManager.getById(5).getStatus());
+
+        System.out.println();
+
+        newEpic = (Epic) taskManager.getById(1);
+        //необходимое преобразование, потому что общей функцией можно вытащить только общий родительский класс
+        System.out.println(newEpic.getId());
+        System.out.println(newEpic.getName());
+        System.out.println(newEpic.getDescription());
+        System.out.println(newEpic.getStatus());
+        System.out.println(newEpic.getSubTasksIds());
+        System.out.println();
+
+        System.out.println(taskManager.getEpicSubTasks(1));
+        System.out.println(taskManager.getEpicSubTasks(4));
+        System.out.println();
+
+        taskManager.remove(0);
+        taskManager.remove(1);
+        System.out.println(taskManager.getTasks());
+
+        newSubTask = new SubTask(6,"Быстро выполнить пятый спринт",
+                "Поторопись! До конца света осталось всего ничего!", TaskStatus.DONE, 4);//мечты
+        taskManager.update(newSubTask);
+        System.out.println(taskManager.getById(4).getStatus());//вывод статуса эпика, в котором лежала подзадача
