@@ -74,7 +74,7 @@ public class TaskManager {
         return true;
     }
 
-    public boolean addEpic(Epic epic) {//Пока не знаем, что такое перегрузка))
+    public boolean addEpic(Epic epic) {//Пока не знаем, что такое перегрузка
         if (epic == null) return false;
         Epic newEpic;
         if (freeIds.isEmpty()) {

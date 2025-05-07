@@ -57,7 +57,7 @@ public class Task {
     }
 
     public String getName() {
-        return new String(name);
+        return name;
     }
 
     public String getDescription() {
