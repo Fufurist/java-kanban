@@ -13,19 +13,19 @@ public class TaskManager {
         epics = new HashMap<>();
         subTasks = new HashMap<>();
         freeIds = new ArrayList<>();
-        currentMaxId = 0;
+        currentMaxId = 1;
     }
 
-    public HashMap<Integer, Task> getTasks() {
-        return new HashMap<>(tasks);
-    }//возвращаем в том же виде, что храним
+    public ArrayList<Task> getTasks() {
+        return new ArrayList<>(tasks.values());
+    }//возвращаем списком
 
-    public HashMap<Integer, Epic> getEpics() {
-        return new HashMap<>(epics);
+    public ArrayList<Epic> getEpics() {
+        return new ArrayList<>(epics.values());
     }
 
-    public HashMap<Integer, SubTask> getSubTasks() {
-        return new HashMap<>(subTasks);
+    public ArrayList<SubTask> getSubTasks() {
+        return new ArrayList<>(subTasks.values());
     }
 
     public void clearAll() {
@@ -33,76 +33,72 @@ public class TaskManager {
         epics.clear();
         subTasks.clear();
         freeIds.clear();
-        currentMaxId = 0;
-    }//раздельные методы чистки каждой подкатегории реализую сильно ниже
+        currentMaxId = 1;
+    }//раздельные методы чистки каждой подкатегории сильно ниже
 
     //будет три раздельных метода поиска по id, потому что явное преобразование типов проходится позже
     public Task getTaskById(int id) {
-        if (tasks.containsKey(id)) {
-            return tasks.get(id);//опять вопрос, заморочиться с созданием копии, или так и возвращать ссылку на сущ.
-        } else {
-            return null;
-        }
+        return tasks.get(id);
     }
 
     public Epic getEpicById(int id) {
-        if (epics.containsKey(id)) {//ИДЕЯ предлагает заменить на getOrDefault, но имея в виду вопрос выше оставлю так
-            return epics.get(id);
-        } else {
-            return null;
-        }
+        return epics.get(id);
     }
 
     public SubTask getSubTaskById(int id) {
-        if (subTasks.containsKey(id)) {
-            return subTasks.get(id);
-        } else {
-            return null;
-        }
+        return subTasks.get(id);
     }
 
-    public boolean addTask(Task task) {
-        if (task == null) return false;
-        Task newTask;
+    public int addTask(Task task) {
+        if (task == null) return -1;
+        Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus());
+        int id;
         if (freeIds.isEmpty()) {
-            newTask = new Task(++currentMaxId, task.getName(), task.getDescription(), task.getStatus());
+            id = currentMaxId;
+            currentMaxId++;
         } else {
-            newTask = new Task(freeIds.getLast(), task.getName(), task.getDescription(), task.getStatus());
-            freeIds.removeLast();//Почитал спецификации. Написано, что getLast и removeLast имеют сложность O(1);
-        }
-        tasks.put(newTask.getId(), newTask);
-        return true;
-    }
-
-    public boolean addEpic(Epic epic) {//Пока не знаем, что такое перегрузка
-        if (epic == null) return false;
-        Epic newEpic;
-        if (freeIds.isEmpty()) {
-            newEpic = new Epic(++currentMaxId, epic.getName(), epic.getDescription(), epic.getStatus());
-        } else {
-            newEpic = new Epic(freeIds.getLast(), epic.getName(), epic.getDescription(), epic.getStatus());
+            id = freeIds.getLast();
             freeIds.removeLast();
         }
-        epics.put(newEpic.getId(), newEpic);//Новый эпик добавляется с пустым списком подзадач
-        return true;
+        newTask.setId(id);
+        tasks.put(id, newTask);
+        return id;
     }
 
-    public boolean addSubTask(SubTask subTask) {
-        if (subTask == null) return false;
-        if (!epics.containsKey(subTask.getEpicId())) return false;
-        SubTask newSubTask;
+    public int addEpic(Epic epic) {//Пока не знаем, что такое перегрузка
+        if (epic == null) return -1;
+        Epic newEpic = new Epic(epic.getName(), epic.getDescription());//статус теперь NEW в конструкторе по умолчанию
+        int id;
         if (freeIds.isEmpty()) {
-            newSubTask = new SubTask(++currentMaxId, subTask.getName(), subTask.getDescription(),
-                    subTask.getStatus(), subTask.getEpicId());
+            id = currentMaxId;
+            currentMaxId++;
         } else {
-            newSubTask = new SubTask(freeIds.getLast(), subTask.getName(), subTask.getDescription(),
-                    subTask.getStatus(), subTask.getEpicId());
+            id = freeIds.getLast();
             freeIds.removeLast();
         }
-        epics.get(subTask.getEpicId()).addSubTask(newSubTask.getId());
-        subTasks.put(newSubTask.getId(), newSubTask);
+        newEpic.setId(id);
+        epics.put(id, newEpic);//Новый эпик добавляется с пустым списком подзадач
+        return id;
+    }
+
+    public int addSubTask(SubTask subTask) {
+        if (subTask == null) return -1;
+        if (!epics.containsKey(subTask.getEpicId())) return -1;//если не существует подходящего эпика
+        SubTask newSubTask = new SubTask(subTask.getName(), subTask.getDescription(),
+                subTask.getStatus(), subTask.getEpicId());
+        int id;
+        if (freeIds.isEmpty()) {
+            id = currentMaxId;
+            currentMaxId++;
+        } else {
+            id = freeIds.getLast();
+            freeIds.removeLast();
+        }
+        newSubTask.setId(id);
+        subTasks.put(id, newSubTask);
+        epics.get(subTask.getEpicId()).addSubTask(id);
         adjustEpicStatus(subTask.getEpicId());
-        return true;
+        return id;
     }
 
     public boolean updateTask(Task task) {//на этом моменте ИДЕЯ предложила добавить параметр @notNull
@@ -122,8 +118,7 @@ public class TaskManager {
         if (tasks.containsKey(epic.getId())) {
             Epic upEpic = epics.get(epic.getId());
             upEpic.setName(epic.getName());
-            upEpic.setDescription(epic.getDescription());
-            upEpic.setStatus(epic.getStatus());
+            upEpic.setDescription(epic.getDescription());//убрал замену статуса
             return true;//изменять список подзадач пользователю не положено
         }
         return false;
@@ -131,14 +126,16 @@ public class TaskManager {
 
     public boolean updateSubTask(SubTask subTask) {
         if (subTask == null) return false;
-        if (tasks.containsKey(subTask.getId())) {
+        if (subTasks.containsKey(subTask.getId())) {
             SubTask upSubTask = subTasks.get(subTask.getId());
-            upSubTask.setName(subTask.getName());
-            upSubTask.setDescription(subTask.getDescription());
-            upSubTask.setStatus(subTask.getStatus());
-            adjustEpicStatus(upSubTask.getEpicId());
-            return true;//А вот стоит ли добавить возможность менять принадлежность к эпику - новый вопрос
-        }               //Хотя пока возможности это сделать всё равно нет, потому что нет соответствующих методов.
+            if (upSubTask.getEpicId() == subTask.getEpicId()) {//проверяем, что новый принадлежит тому же эпику
+                upSubTask.setName(subTask.getName());
+                upSubTask.setDescription(subTask.getDescription());
+                upSubTask.setStatus(subTask.getStatus());
+                adjustEpicStatus(upSubTask.getEpicId());
+                return true;
+            }
+        }
         return false;
     }
 
@@ -155,7 +152,7 @@ public class TaskManager {
             freeIds.addLast(id);
             //надо также удалить все подзадачи
             ArrayList<Integer> subs = epics.get(id).getSubTasksIds();
-            for (int i : subs){//поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
+            for (int i : subs) {//поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
                 subTasks.remove(i);
             }
             epics.remove(id);
@@ -173,35 +170,41 @@ public class TaskManager {
         return false;
     }
 
-    public ArrayList<Integer> getEpicSubTasksIds(int id) {//
+    public ArrayList<SubTask> getEpicSubTasksIds(int id) {//изменил сигнатуру
         if (epics.containsKey(id)) {
-            return new ArrayList<>(epics.get(id).getSubTasksIds());
+            ArrayList<Integer> subTasksIds = new ArrayList<>(epics.get(id).getSubTasksIds());
+            ArrayList<SubTask> output = new ArrayList<>();
+            for (int i : subTasksIds) {//Специально проверил маны. В HashMap нет методов, по набору ключей возвращающих
+                output.add(subTasks.get(i));//Коллекцию значений. Скорее всего потому, что коллекций много.
+            }
+            return output;
         }
         return null;
     }
 
     //пришло время чистки отдельных списков
-    public void clearTasks(){
+    public void clearTasks() {
         freeIds.addAll(tasks.keySet());
         tasks.clear();
     }
 
-    public void clearSubTasks(){
+    public void clearSubTasks() {
+        for (Epic epic : epics.values()) {
+            epic.removeAllSubTasks();
+            adjustEpicStatus(epic.getId());//поскольку список подзадач пустой, метод выйдет уже после второй проверки
+        }
         freeIds.addAll(subTasks.keySet());
         subTasks.clear();
-        for (Epic epic : epics.values()){//сначала хотел вызвать перебор всех adjustEpicStatus
-            epic.setStatus(TaskStatus.NEW);//но так лучше быстродействие
-        }
     }
 
-    public void clearEpics(){
+    public void clearEpics() {
         freeIds.addAll(epics.keySet());
         epics.clear();
         freeIds.addAll(subTasks.keySet());//подзадачи не существуют без эпиков
         subTasks.clear();
     }
 
-    private void adjustEpicStatus(int id) {//Вызывать каждый раз когда какие-то изменения в эпиках или подзадачах
+    private void adjustEpicStatus(int id) {//Вызывать каждый раз когда какие-то изменения в подзадачах
         Epic epic = epics.get(id);
         ArrayList<Integer> subTasksIds = epic.getSubTasksIds();
         boolean allNew = true;
@@ -211,15 +214,14 @@ public class TaskManager {
             epic.setStatus(TaskStatus.NEW);//"если у эпика нет подзадач, то статус должен быть NEW"
             return;
         }
-        for (int i : subTasksIds){
-            switch (subTasks.get(id).getStatus()) {
+        for (int i : subTasksIds) {
+            switch (subTasks.get(i).getStatus()) {//теперь перебор идет по списку id из списка подзадач
                 case NEW:
-                    allDone = false;
+                    allDone = false;//противоположные статусы опускают флаги друг друга
                     break;
                 case IN_PROGRESS:
-                    allDone = false;
-                    allNew = false;
-                    break;
+                    epic.setStatus(TaskStatus.IN_PROGRESS);
+                    return;//если хоть одна подзадача в прогрессе, то и эпик сразу в прогрессе
                 case DONE:
                     allNew = false;
                     break;
@@ -229,7 +231,7 @@ public class TaskManager {
             epic.setStatus(TaskStatus.NEW);
         } else if (allDone) {
             epic.setStatus(TaskStatus.DONE);
-        } else {
+        } else {//вызовется, если часть новые, а часть выполнена
             epic.setStatus(TaskStatus.IN_PROGRESS);
         }
     }

@@ -1,14 +1,13 @@
 import java.util.Objects;
 
 public class Task {
-    private final int id;
+    private int id;
     private String name;
     private String description;
     private TaskStatus status;
 
-    //оставил единственный конструктор, раз id для них будет назначать менеджер.
-    public Task(int id, String name, String description, TaskStatus status) {
-        this.id = id;
+    public Task(String name, String description, TaskStatus status) {
+        this.id = 0;
         this.name = name;
         this.description = description;
         this.status = status;
@@ -28,7 +27,7 @@ public class Task {
         return Objects.hash(id);    //Так у "Идентичных" задач будет одинаковый хеш
     }
 
-    @Override //теперь торопиться некуда, сделаю нормальный toString()
+    @Override
     public String toString() {
         String output = "Задача " + id + ": " + name + " - ";
         if (description != null) {
@@ -38,6 +37,10 @@ public class Task {
         }
         output += "описания, статус - " + status + ".";
         return output;
+    }
+
+    public void setId(int id){
+        this.id = id;
     }
 
     public void setName(String name) {

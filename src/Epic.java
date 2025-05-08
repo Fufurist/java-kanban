@@ -4,8 +4,8 @@ public class Epic extends Task {
     private final ArrayList<Integer> subTasksIds;
 
     //Поскольку теперь менеджер сам меняет поля, пользователям не нужно самим указывать список подзадач
-    public Epic(int id, String name, String description, TaskStatus status) {
-        super(id, name, description, status);
+    public Epic(String name, String description) {//убрал смену статуса из конструктора
+        super(name, description, TaskStatus.NEW);//пусть по умолчанию новый будет
         this.subTasksIds = new ArrayList<>();
     }
 
