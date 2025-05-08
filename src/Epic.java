@@ -17,9 +17,8 @@ public class Epic extends Task {
         return new ArrayList<>(subTasksIds);
     }
 
-    //сделаю все методы, где может возникнуть ошибка булевскими, и не буду допускать ошибок
     public void removeSubTaskId(int id) {
-        subTasksIds.remove(id);
+        subTasksIds.remove(Integer.valueOf(id));//ИДЕЯ говорит, что теперь вызывается второй метод
     }
 
     public void removeAllSubTasks() {
