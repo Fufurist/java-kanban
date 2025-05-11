@@ -24,23 +24,23 @@ class InMemoryTaskManagerTest {
         taskManager.addTask(newTask);
         newEpic = new Epic("Успеть всё",//id - 5
                 "Осталось всего 22 часа, пора поторопиться и завершить этот модуль!");
-        taskManager.addTask(newEpic);
+        taskManager.addEpic(newEpic);
         newSubTask = new SubTask("Сделать ДЗ по Диффурам",//id - 6
                 "Достать Тетрадь, достать Филлипова, сделать номера ...", TaskStatus.NEW, 2);
-        taskManager.addTask(newSubTask);
+        taskManager.addSubTask(newSubTask);
         newSubTask = new SubTask("Быстро выполнить пятый спринт",//id - 7
                 "Поторопись! До конца света осталось всего ничего!", TaskStatus.NEW, 5);
-        taskManager.addTask(newSubTask);
+        taskManager.addSubTask(newSubTask);
     }
 
     @Test
     public void taskEqualsTest(){
         Task newTask = new Task("Bla-bla", "Bla-Bla-Bla", TaskStatus.DONE);
         newTask.setId(4);
-        assertTrue(newTask.equals(taskManager.getTaskById(4)));
-        assertFalse(newTask.equals(1));
+        assertEquals(newTask, taskManager.getTaskById(4));
+        assertNotEquals(newTask,taskManager.getTaskById(1));
         newTask.setId(2);//id как у первого эпика
-        assertFalse(newTask.equals(2));
+        assertNotEquals(newTask,taskManager.getTaskById(2));
     }
 
     @Test
@@ -53,12 +53,15 @@ class InMemoryTaskManagerTest {
     public void gettersTest(){
         Task newTask = new Task("Помыть посуду",//id - 1
                 "Прийти на кухню и вымыть все грязные тарелки", TaskStatus.IN_PROGRESS);
+        newTask.setId(1);
         assertEquals(newTask.toString(), taskManager.getTaskById(1).toString()); //простая проверка всех полей
         Epic newEpic = new Epic("Сделать домашку",// id - 2
                 "По очереди выполнить домашнее задание по всем предметам");
+        newEpic.setId(2);
         assertEquals(newEpic.toString(), taskManager.getEpicById(2).toString());
         SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
                 "Достать Тетрадь, достать Демидовича, сделать номера ...", TaskStatus.NEW, 2);
+        newSubTask.setId(3);
         assertEquals(newSubTask.toString(), taskManager.getSubTaskById(3).toString());
         assertEquals(newSubTask.getEpicId(), taskManager.getSubTaskById(3).getEpicId());
     }
@@ -74,11 +77,11 @@ class InMemoryTaskManagerTest {
         taskManager.updateTask(fifthMember);//изменили один из них
         fifthMember = taskManager.getTaskById(4);
         List<Task> history = taskManager.getHistory();
-        assertEquals(firstMember.toString(), history.get(0));
-        assertEquals(secondMember.toString(), history.get(1));
-        assertEquals(thirdMember.toString(), history.get(2));
-        assertEquals(fourthMember.toString(), history.get(3));
-        assertEquals(fifthMember.toString(), history.get(4));
+        assertEquals(firstMember.toString(), history.get(0).toString());
+        assertEquals(secondMember.toString(), history.get(1).toString());
+        assertEquals(thirdMember.toString(), history.get(2).toString());
+        assertEquals(fourthMember.toString(), history.get(3).toString());
+        assertEquals(fifthMember.toString(), history.get(4).toString());
 
         for (int i = 0; i < 10; i++){
             firstMember = taskManager.getTaskById(1);//забиваем историю

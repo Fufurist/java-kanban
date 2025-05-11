@@ -46,6 +46,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTaskById(int id) {
+        if (!tasks.containsKey(id)) return null;
         //Оставлю по одной копии(
         Task copiedTask = tasks.get(id);
         Task toReturnTask = new Task(copiedTask.getName(), copiedTask.getDescription(), copiedTask.getStatus());
@@ -70,6 +71,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public SubTask getSubTaskById(int id) {
+        if (!subTasks.containsKey(id)) return null;
         SubTask copiedSubTask = subTasks.get(id);
         SubTask toReturnSubTask = new SubTask(copiedSubTask.getName(), copiedSubTask.getDescription(),
                 copiedSubTask.getStatus(), copiedSubTask.getEpicId());
