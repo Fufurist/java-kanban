@@ -1,18 +1,8 @@
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-/*
-Добавил библиотеку jUnit5 по гайду из ТЗ. Файлы jUnit лежат в lib, но как бы я не пытался поменять путь импортов,
-Идея не видит библиотечек и не компилирует. Даже когда создавал этот тестовый класс автоматически через идею она всё
-равно не могла слинковать импорты с библиотечкой. Потратил слишком много времени на это. Чтобы отправить хотя бы первую
-итерацию до завтра, набросал примерно как должны выглядеть Обязательные тесты, упомянутые напрямую в ТЗ. Создал файлик с
-заметками, где немного подробнее написал почему не реализовал тот или иной тестик. Отправляю первую итерацию в таком
-виде, чтобы было с чем работать.
 
-Также помимо помощи с решением проблемы буду рад советам какие ещё тестики реализовать ОБЯЗАТЕЛЬНО, а какие ЖЕЛАТЕЛЬНО
-*/
-
-import java.util.ArrayList;
+import java.util.List;
 
 class InMemoryTaskManagerTest {
     public TaskManager taskManager;
@@ -83,7 +73,7 @@ class InMemoryTaskManagerTest {
         fifthMember.setId(4);
         taskManager.updateTask(fifthMember);//изменили один из них
         fifthMember = taskManager.getTaskById(4);
-        ArrayList<Task> history = taskManager.getHistory();
+        List<Task> history = taskManager.getHistory();
         assertEquals(firstMember.toString(), history.get(0));
         assertEquals(secondMember.toString(), history.get(1));
         assertEquals(thirdMember.toString(), history.get(2));

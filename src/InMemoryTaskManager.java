@@ -1,35 +1,37 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> tasks;
-    private final HashMap<Integer, Epic> epics;
-    private final HashMap<Integer, SubTask> subTasks;
-    private final ArrayList<Integer> freeIds; //сохраняя освободившиеся id мы делаем их более скомпонованными ближе к 0
+    private final Map<Integer, Task> tasks;
+    private final Map<Integer, Epic> epics;
+    private final Map<Integer, SubTask> subTasks;
+    private final List<Integer> freeIds; //сохраняя освободившиеся id мы делаем их более скомпонованными ближе к 0
     private int currentMaxId; //что повышает удобство взаимодействия с ними для пользователя
     private HistoryManager history;
 
-    public InMemoryTaskManager(HistoryManager history) {
+    public InMemoryTaskManager() {
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subTasks = new HashMap<>();
         freeIds = new ArrayList<>();
         currentMaxId = 1;
-        this.history = history;
+        this.history = Managers.getDefaultHistory();
     }
 
     @Override
-    public ArrayList<Task> getTasks() {
+    public List<Task> getTasks() {
         return new ArrayList<>(tasks.values());
     }//возвращаем списком
 
     @Override
-    public ArrayList<Epic> getEpics() {
+    public List<Epic> getEpics() {
         return new ArrayList<>(epics.values());
     }
 
     @Override
-    public ArrayList<SubTask> getSubTasks() {
+    public List<SubTask> getSubTasks() {
         return new ArrayList<>(subTasks.values());
     }
 
@@ -42,48 +44,37 @@ public class InMemoryTaskManager implements TaskManager {
         currentMaxId = 1;
     }//раздельные методы чистки каждой подкатегории сильно ниже
 
-    //По ТЗ не требуется применять везде полиморфизм, поэтому оставим пока раздельные методы для всего.
-    //Плюс для сохранения в историю нам необходимо создать копию задачи в память, чтобы ссылка на неё ушла в историю,
-    //которая на данный момент лежит в той же памяти. Потому мной было решено, что возвращаемое значение стоит тоже
-    //сделать копией задачи отсюда. Может быть стоит сделать конструктор копирования... Пока их не проходили, поэтому
-    //не буду торопить события.
     @Override
     public Task getTaskById(int id) {
+        //Оставлю по одной копии(
         Task copiedTask = tasks.get(id);
-        Task toHistoryTask = new Task(copiedTask.getName(), copiedTask.getDescription(), copiedTask.getStatus());
         Task toReturnTask = new Task(copiedTask.getName(), copiedTask.getDescription(), copiedTask.getStatus());
-        toHistoryTask.setId(copiedTask.getId());
         toReturnTask.setId(copiedTask.getId());
         //Скопировал все поля
-        history.add(toHistoryTask);
+        history.add(toReturnTask);
         return toReturnTask;
     }
 
     @Override
     public Epic getEpicById(int id) {
+        if (!epics.containsKey(id)) return null;
         Epic copiedEpic = epics.get(id);
-        Epic toHistoryEpic = new Epic(copiedEpic.getName(), copiedEpic.getDescription());
         Epic toReturnEpic = new Epic(copiedEpic.getName(), copiedEpic.getDescription());
-        toHistoryEpic.setId(copiedEpic.getId());
         toReturnEpic.setId(copiedEpic.getId());
         for (int i : copiedEpic.getSubTasksIds()){//вручную скопировать список подзадач
-            toHistoryEpic.addSubTask(i);
             toReturnEpic.addSubTask(i);
         }
-        history.add(toHistoryEpic);
+        history.add(toReturnEpic);
         return toReturnEpic;
     }
 
     @Override
     public SubTask getSubTaskById(int id) {
         SubTask copiedSubTask = subTasks.get(id);
-        SubTask toHistorySubTask = new SubTask(copiedSubTask.getName(), copiedSubTask.getDescription(),
-                copiedSubTask.getStatus(), copiedSubTask.getEpicId());
         SubTask toReturnSubTask = new SubTask(copiedSubTask.getName(), copiedSubTask.getDescription(),
                 copiedSubTask.getStatus(), copiedSubTask.getEpicId());
-        toHistorySubTask.setId(copiedSubTask.getId());
         toReturnSubTask.setId(copiedSubTask.getId());
-        history.add(toHistorySubTask);
+        history.add(toReturnSubTask);
         return toReturnSubTask;
     }
 
@@ -218,7 +209,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<SubTask> getEpicSubTasksIds(int id) {//изменил сигнатуру
+    public List<SubTask> getEpicSubTasksIds(int id) {//изменил сигнатуру
         if (epics.containsKey(id)) {
             ArrayList<Integer> subTasksIds = new ArrayList<>(epics.get(id).getSubTasksIds());
             ArrayList<SubTask> output = new ArrayList<>();
@@ -288,7 +279,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getHistory() {
+    public List<Task> getHistory() {
         return history.getHistory();
     }
 }

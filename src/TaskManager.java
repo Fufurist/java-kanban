@@ -1,11 +1,11 @@
-import java.util.ArrayList;
+import java.util.List;
 
 public interface TaskManager {
-    ArrayList<Task> getTasks();
+    List<Task> getTasks();
 
-    ArrayList<Epic> getEpics();
+    List<Epic> getEpics();
 
-    ArrayList<SubTask> getSubTasks();
+    List<SubTask> getSubTasks();
 
     void clearAll();
 
@@ -33,7 +33,7 @@ public interface TaskManager {
 
     boolean removeSubTask(int id);
 
-    ArrayList<SubTask> getEpicSubTasksIds(int id);
+    List<SubTask> getEpicSubTasksIds(int id);
 
     void clearTasks();
 
@@ -41,5 +41,5 @@ public interface TaskManager {
 
     void clearEpics();
 
-    ArrayList<Task> getHistory();
+    List<Task> getHistory();
 }
