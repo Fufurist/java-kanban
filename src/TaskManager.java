@@ -40,4 +40,6 @@ public interface TaskManager {
     void clearSubTasks();
 
     void clearEpics();
+
+    ArrayList<Task> getHistory();
 }

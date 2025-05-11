@@ -19,6 +19,7 @@ public class InMemoryHistoryManager implements HistoryManager{
             //Нам же по-факту даже не важно что мы сохраняем, лишь бы оно было наследовано от Задачи
         } else {
             history.removeFirst();
+            //жутко неэффективная операция, которая переставляет все элементы на 1 назад)))
             history.add(task);
         }
         return true;
