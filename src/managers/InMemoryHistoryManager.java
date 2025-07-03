@@ -38,12 +38,12 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (elem == null) return;
         if (elem.getNext() != null) {
             elem.getNext().setPrev(elem.getPrev());
-        } else {//если удаляемый был последним.
+        } else { //если удаляемый был последним.
             lastElem = elem.getPrev();
         }
         if (elem.getPrev() != null) {
             elem.getPrev().setNext(elem.getNext());
-        } else {//если удаляемый был первым.
+        } else { //если удаляемый был первым.
             firstElem = elem.getNext();
         }
         //Вытащили элемент из цепочки. Потом при помощи linkLast переназначатся его ссылки.
