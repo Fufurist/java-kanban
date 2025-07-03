@@ -96,6 +96,10 @@ class InMemoryTaskManagerTest {
         history = taskManager.getHistory();
         Assertions.assertEquals(4, history.size());
         Assertions.assertEquals(firstMember.toString(), history.get(3).toString());
-    }
 
+        taskManager.clearEpics();
+        history = taskManager.getHistory();
+        Assertions.assertEquals(firstMember.toString(), history.get(1).toString());
+        Assertions.assertEquals(fifthMember.toString(), history.get(0).toString());
+    }
 }

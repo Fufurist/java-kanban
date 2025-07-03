@@ -185,6 +185,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.containsKey(id)) {
             freeIds.addLast(id);//по-факту пользуюсь этим списком как стеком, используя только операции O(1)
             tasks.remove(id);
+            history.remove(id);
         }
         return false;
     }
@@ -197,8 +198,10 @@ public class InMemoryTaskManager implements TaskManager {
             ArrayList<Integer> subs = epics.get(id).getSubTasksIds();
             for (int i : subs) {//поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
                 subTasks.remove(i);
+                history.remove(i);
             }
             epics.remove(id);
+            history.remove(id);
         }
         return false;
     }
@@ -210,6 +213,7 @@ public class InMemoryTaskManager implements TaskManager {
             adjustEpicStatus(subTasks.get(id).getEpicId());
             freeIds.addLast(id);
             subTasks.remove(id);
+            history.remove(id);
         }
         return false;
     }
@@ -231,6 +235,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void clearTasks() {
         freeIds.addAll(tasks.keySet());
+        for (Integer id : tasks.keySet()){
+            history.remove(id);
+        }
         tasks.clear();
     }
 
@@ -241,14 +248,23 @@ public class InMemoryTaskManager implements TaskManager {
             adjustEpicStatus(epic.getId());//поскольку список подзадач пустой, метод выйдет уже после второй проверки
         }
         freeIds.addAll(subTasks.keySet());
+        for (Integer id : subTasks.keySet()){
+            history.remove(id);
+        }
         subTasks.clear();
     }
 
     @Override
     public void clearEpics() {
         freeIds.addAll(epics.keySet());
+        for (Integer id : epics.keySet()){
+            history.remove(id);
+        }
         epics.clear();
         freeIds.addAll(subTasks.keySet());//подзадачи не существуют без эпиков
+        for (Integer id : subTasks.keySet()){
+            history.remove(id);
+        }
         subTasks.clear();
     }
 
