@@ -1,6 +1,6 @@
 package managers;
 
-import taskUnits.Task;
+import taskunits.Task;
 
 class Node { //класс не публичный, потому что я хочу, чтоб им пользовался только InMemoryHistoryManager в этом же пакете
     private Node prev;

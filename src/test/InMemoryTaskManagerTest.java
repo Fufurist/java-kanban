@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import java.util.List;
 
 import managers.*;
-import taskUnits.*;
+import taskunits.*;
 
 class InMemoryTaskManagerTest {
     public TaskManager taskManager;
