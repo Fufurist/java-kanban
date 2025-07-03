@@ -104,7 +104,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void removalTester(){
+    public void removalTester() {
         //System.out.println(taskManager.getTasks());
         //System.out.println(taskManager.getEpics());
         //System.out.println(taskManager.getSubTasks());

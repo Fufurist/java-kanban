@@ -66,7 +66,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic copiedEpic = epics.get(id);
         Epic toReturnEpic = new Epic(copiedEpic.getName(), copiedEpic.getDescription());
         toReturnEpic.setId(copiedEpic.getId());
-        for (int i : copiedEpic.getSubTasksIds()){//вручную скопировать список подзадач
+        for (int i : copiedEpic.getSubTasksIds()) {//вручную скопировать список подзадач
             toReturnEpic.addSubTask(i);
         }
         history.add(toReturnEpic);
@@ -235,7 +235,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void clearTasks() {
         freeIds.addAll(tasks.keySet());
-        for (Integer id : tasks.keySet()){
+        for (Integer id : tasks.keySet()) {
             history.remove(id);
         }
         tasks.clear();
@@ -248,7 +248,7 @@ public class InMemoryTaskManager implements TaskManager {
             adjustEpicStatus(epic.getId());//поскольку список подзадач пустой, метод выйдет уже после второй проверки
         }
         freeIds.addAll(subTasks.keySet());
-        for (Integer id : subTasks.keySet()){
+        for (Integer id : subTasks.keySet()) {
             history.remove(id);
         }
         subTasks.clear();
@@ -257,12 +257,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void clearEpics() {
         freeIds.addAll(epics.keySet());
-        for (Integer id : epics.keySet()){
+        for (Integer id : epics.keySet()) {
             history.remove(id);
         }
         epics.clear();
         freeIds.addAll(subTasks.keySet());//подзадачи не существуют без эпиков
-        for (Integer id : subTasks.keySet()){
+        for (Integer id : subTasks.keySet()) {
             history.remove(id);
         }
         subTasks.clear();

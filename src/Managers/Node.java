@@ -7,12 +7,12 @@ class Node {//класс не публичный, потому что я хоч�
     private Task info;//допустим, при просмотре истории нам не важен тип задачи.
     private Node next;
 
-    Node(Task info){
+    Node(Task info) {
         this.info = info;
         // prev и next зададутся через linkLast()
     }
 
-    public Task getInfo(){//Если я намеренно делаю package private класс, то как в нём работают public методы...?
+    public Task getInfo() {//Если я намеренно делаю package private класс, то как в нём работают public методы...?
         return this.info;
     }
 
@@ -24,11 +24,11 @@ class Node {//класс не публичный, потому что я хоч�
         return next;
     }
 
-    public void setPrev(Node prev){
+    public void setPrev(Node prev) {
         this.prev = prev;
     }
 
-    public void setNext(Node next){
+    public void setNext(Node next) {
         this.next = next;
     }
 
