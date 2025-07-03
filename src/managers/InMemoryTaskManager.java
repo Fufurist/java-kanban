@@ -169,7 +169,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTask == null) return false;
         if (subTasks.containsKey(subTask.getId())) {
             SubTask upSubTask = subTasks.get(subTask.getId());
-            if (upSubTask.getEpicId() == subTask.getEpicId()) {//проверяем, что новый принадлежит тому же эпику
+            if (upSubTask.getEpicId() == subTask.getEpicId()) { //проверяем, что новый принадлежит тому же эпику
                 upSubTask.setName(subTask.getName());
                 upSubTask.setDescription(subTask.getDescription());
                 upSubTask.setStatus(subTask.getStatus());
@@ -219,7 +219,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<SubTask> getEpicSubTasksIds(int id) {//изменил сигнатуру
+    public List<SubTask> getEpicSubTasksIds(int id) { //изменил сигнатуру
         if (epics.containsKey(id)) {
             ArrayList<Integer> subTasksIds = new ArrayList<>(epics.get(id).getSubTasksIds());
             ArrayList<SubTask> output = new ArrayList<>();
