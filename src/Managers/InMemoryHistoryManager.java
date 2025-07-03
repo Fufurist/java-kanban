@@ -21,6 +21,7 @@ public class InMemoryHistoryManager implements HistoryManager{
     }
 
     private void linkLast(Node elem){
+        if (elem == null) return;
         elem.setNext(null);
         if (lastElem == null){
             firstElem = elem;
@@ -34,6 +35,7 @@ public class InMemoryHistoryManager implements HistoryManager{
     }
 
     private void removeNode(Node elem){
+        if (elem == null) return;
         if (elem.getNext() != null){
             elem.getNext().setPrev(elem.getPrev());
         } else {//если удаляемый был последним.
@@ -62,15 +64,8 @@ public class InMemoryHistoryManager implements HistoryManager{
     public boolean add(Task task) {
         if (task == null) return false;
         int id = task.getId();
-        Node node;
-
-        if (history.containsKey(id)){
-            node = history.get(id);
-            removeNode(node);
-        } else {
-            node = new Node(task);
-            history.put(id, node);
-        }
+        Node node = new Node(task);
+        removeNode(history.put(id, node));
         linkLast(node);
         return true;
     }
