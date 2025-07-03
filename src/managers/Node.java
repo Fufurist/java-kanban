@@ -2,7 +2,7 @@ package managers;
 
 import taskUnits.Task;
 
-class Node {//класс не публичный, потому что я хочу, чтоб им пользовался только InMemoryHistoryManager в этом же пакете
+class Node { //класс не публичный, потому что я хочу, чтоб им пользовался только InMemoryHistoryManager в этом же пакете
     private Node prev;
     private Task info; //допустим, при просмотре истории нам не важен тип задачи.
     private Node next;
