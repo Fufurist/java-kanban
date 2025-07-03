@@ -102,4 +102,16 @@ class InMemoryTaskManagerTest {
         Assertions.assertEquals(firstMember.toString(), history.get(1).toString());
         Assertions.assertEquals(fifthMember.toString(), history.get(0).toString());
     }
+
+    @Test
+    public void removalTester(){
+        //System.out.println(taskManager.getTasks());
+        //System.out.println(taskManager.getEpics());
+        //System.out.println(taskManager.getSubTasks());
+        taskManager.removeSubTask(6);
+        //System.out.println(taskManager.getEpicById(2).getSubTasksIds());
+        assertEquals(List.of(3), taskManager.getEpicById(2).getSubTasksIds());
+        taskManager.removeEpic(2);
+        assertEquals(List.of(taskManager.getEpicById(5)), taskManager.getEpics());
+    }
 }
