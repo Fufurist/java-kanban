@@ -1,6 +1,6 @@
-package Managers;
+package managers;
 
-import TaskUnits.*;
+import taskunits.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getTasks() {
         return new ArrayList<>(tasks.values());
-    }//возвращаем списком
+    } //возвращаем списком
 
     @Override
     public List<Epic> getEpics() {
@@ -46,7 +46,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.clear();
         freeIds.clear();
         currentMaxId = 1;
-    }//раздельные методы чистки каждой подкатегории сильно ниже
+    } //раздельные методы чистки каждой подкатегории сильно ниже
 
     @Override
     public Task getTaskById(int id) {
@@ -66,7 +66,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic copiedEpic = epics.get(id);
         Epic toReturnEpic = new Epic(copiedEpic.getName(), copiedEpic.getDescription());
         toReturnEpic.setId(copiedEpic.getId());
-        for (int i : copiedEpic.getSubTasksIds()){//вручную скопировать список подзадач
+        for (int i : copiedEpic.getSubTasksIds()) { //вручную скопировать список подзадач
             toReturnEpic.addSubTask(i);
         }
         history.add(toReturnEpic);
@@ -102,7 +102,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addEpic(Epic epic) {//Пока не знаем, что такое перегрузка
+    public int addEpic(Epic epic) { //Пока не знаем, что такое перегрузка
         if (epic == null) return -1;
         Epic newEpic = new Epic(epic.getName(), epic.getDescription());//статус теперь NEW в конструкторе по умолчанию
         int id;
@@ -140,7 +140,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public boolean updateTask(Task task) {//на этом моменте ИДЕЯ предложила добавить параметр @notNull
+    public boolean updateTask(Task task) { //на этом моменте ИДЕЯ предложила добавить параметр @notNull
         if (task == null) return false;//поэтому решил перестраховаться еще больше и везде воткнуть проверку параметра
         if (tasks.containsKey(task.getId())) {
             Task upTask = tasks.get(task.getId());
@@ -169,7 +169,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTask == null) return false;
         if (subTasks.containsKey(subTask.getId())) {
             SubTask upSubTask = subTasks.get(subTask.getId());
-            if (upSubTask.getEpicId() == subTask.getEpicId()) {//проверяем, что новый принадлежит тому же эпику
+            if (upSubTask.getEpicId() == subTask.getEpicId()) { //проверяем, что новый принадлежит тому же эпику
                 upSubTask.setName(subTask.getName());
                 upSubTask.setDescription(subTask.getDescription());
                 upSubTask.setStatus(subTask.getStatus());
@@ -185,6 +185,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.containsKey(id)) {
             freeIds.addLast(id);//по-факту пользуюсь этим списком как стеком, используя только операции O(1)
             tasks.remove(id);
+            history.remove(id);
         }
         return false;
     }
@@ -195,10 +196,12 @@ public class InMemoryTaskManager implements TaskManager {
             freeIds.addLast(id);
             //надо также удалить все подзадачи
             ArrayList<Integer> subs = epics.get(id).getSubTasksIds();
-            for (int i : subs) {//поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
+            for (int i : subs) { //поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
                 subTasks.remove(i);
+                history.remove(i);
             }
             epics.remove(id);
+            history.remove(id);
         }
         return false;
     }
@@ -210,16 +213,17 @@ public class InMemoryTaskManager implements TaskManager {
             adjustEpicStatus(subTasks.get(id).getEpicId());
             freeIds.addLast(id);
             subTasks.remove(id);
+            history.remove(id);
         }
         return false;
     }
 
     @Override
-    public List<SubTask> getEpicSubTasksIds(int id) {//изменил сигнатуру
+    public List<SubTask> getEpicSubTasksIds(int id) { //изменил сигнатуру
         if (epics.containsKey(id)) {
             ArrayList<Integer> subTasksIds = new ArrayList<>(epics.get(id).getSubTasksIds());
             ArrayList<SubTask> output = new ArrayList<>();
-            for (int i : subTasksIds) {//Специально проверил маны. В HashMap нет методов, по набору ключей возвращающих
+            for (int i : subTasksIds) { //Специально проверил маны. В HashMap нет методов, по набору ключей возвращающих
                 output.add(subTasks.get(i));//Коллекцию значений. Скорее всего потому, что коллекций много.
             }
             return output;
@@ -231,6 +235,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void clearTasks() {
         freeIds.addAll(tasks.keySet());
+        for (Integer id : tasks.keySet()) {
+            history.remove(id);
+        }
         tasks.clear();
     }
 
@@ -241,18 +248,27 @@ public class InMemoryTaskManager implements TaskManager {
             adjustEpicStatus(epic.getId());//поскольку список подзадач пустой, метод выйдет уже после второй проверки
         }
         freeIds.addAll(subTasks.keySet());
+        for (Integer id : subTasks.keySet()) {
+            history.remove(id);
+        }
         subTasks.clear();
     }
 
     @Override
     public void clearEpics() {
         freeIds.addAll(epics.keySet());
+        for (Integer id : epics.keySet()) {
+            history.remove(id);
+        }
         epics.clear();
         freeIds.addAll(subTasks.keySet());//подзадачи не существуют без эпиков
+        for (Integer id : subTasks.keySet()) {
+            history.remove(id);
+        }
         subTasks.clear();
     }
 
-    private void adjustEpicStatus(int id) {//Вызывать каждый раз когда какие-то изменения в подзадачах
+    private void adjustEpicStatus(int id) { //Вызывать каждый раз когда какие-то изменения в подзадачах
         Epic epic = epics.get(id);
         ArrayList<Integer> subTasksIds = epic.getSubTasksIds();
         boolean allNew = true;
@@ -263,7 +279,7 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
         for (int i : subTasksIds) {
-            switch (subTasks.get(i).getStatus()) {//теперь перебор идет по списку id из списка подзадач
+            switch (subTasks.get(i).getStatus()) { //теперь перебор идет по списку id из списка подзадач
                 case NEW:
                     allDone = false;//противоположные статусы опускают флаги друг друга
                     break;
@@ -279,7 +295,7 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(TaskStatus.NEW);
         } else if (allDone) {
             epic.setStatus(TaskStatus.DONE);
-        } else {//вызовется, если часть новые, а часть выполнена
+        } else { //вызовется, если часть новые, а часть выполнена
             epic.setStatus(TaskStatus.IN_PROGRESS);
         }
     }

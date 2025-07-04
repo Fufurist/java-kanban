@@ -1,4 +1,4 @@
-package TaskUnits;
+package taskunits;
 
 import java.util.Objects;
 
@@ -41,7 +41,7 @@ public class Task {
         return output;
     }
 
-    public void setId(int id){
+    public void setId(int id) {
         this.id = id;
     }
 

@@ -1,5 +1,3 @@
-package test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -8,8 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
 
-import Managers.*;
-import TaskUnits.*;
+import managers.*;
+import taskunits.*;
 
 class InMemoryTaskManagerTest {
     public TaskManager taskManager;
@@ -85,18 +83,33 @@ class InMemoryTaskManagerTest {
         fifthMember = taskManager.getTaskById(4);
         List<Task> history = taskManager.getHistory();
         Assertions.assertEquals(firstMember.toString(), history.get(0).toString());
-        Assertions.assertEquals(secondMember.toString(), history.get(1).toString());
-        Assertions.assertEquals(thirdMember.toString(), history.get(2).toString());
-        Assertions.assertEquals(fourthMember.toString(), history.get(3).toString());
-        Assertions.assertEquals(fifthMember.toString(), history.get(4).toString());
+        Assertions.assertNotEquals(secondMember.toString(), history.get(1).toString());
+        Assertions.assertEquals(thirdMember.toString(), history.get(1).toString());
+        Assertions.assertEquals(fourthMember.toString(), history.get(2).toString());
+        Assertions.assertEquals(fifthMember.toString(), history.get(3).toString());
 
         for (int i = 0; i < 10; i++) {
             firstMember = taskManager.getTaskById(1);//забиваем историю
         }
         history = taskManager.getHistory();
-        for (Task task : history) {
-            assertEquals(firstMember, task);
-        }
+        Assertions.assertEquals(4, history.size());
+        Assertions.assertEquals(firstMember.toString(), history.get(3).toString());
+
+        taskManager.clearEpics();
+        history = taskManager.getHistory();
+        Assertions.assertEquals(firstMember.toString(), history.get(1).toString());
+        Assertions.assertEquals(fifthMember.toString(), history.get(0).toString());
     }
 
+    @Test
+    public void removalTester() {
+        //System.out.println(taskManager.getTasks());
+        //System.out.println(taskManager.getEpics());
+        //System.out.println(taskManager.getSubTasks());
+        taskManager.removeSubTask(6);
+        //System.out.println(taskManager.getEpicById(2).getSubTasksIds());
+        assertEquals(List.of(3), taskManager.getEpicById(2).getSubTasksIds());
+        taskManager.removeEpic(2);
+        assertEquals(List.of(taskManager.getEpicById(5)), taskManager.getEpics());
+    }
 }
