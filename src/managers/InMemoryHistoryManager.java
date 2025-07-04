@@ -25,13 +25,11 @@ public class InMemoryHistoryManager implements HistoryManager {
         elem.setNext(null);
         if (lastElem == null) {
             firstElem = elem;
-            lastElem = elem;
-            elem.setPrev(null);
         } else {
             lastElem.setNext(elem);
             elem.setPrev(lastElem);
-            lastElem = elem;
         }
+        lastElem = elem;
     }
 
     private void removeNode(Node elem) {
@@ -46,8 +44,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         } else { //если удаляемый был первым.
             firstElem = elem.getNext();
         }
-        //Вытащили элемент из цепочки. Потом при помощи linkLast переназначатся его ссылки.
-        //Для задачи мы только вырываем и вставляем элементы в конец, никогда не удаляя их полностью.
     }
 
     private List<Task> getTasks() {

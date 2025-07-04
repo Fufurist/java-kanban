@@ -8,8 +8,9 @@ class Node { //класс не публичный, потому что я хоч
     private Node next;
 
     Node(Task info) {
+        prev = null;
         this.info = info;
-        // prev и next зададутся через linkLast()
+        next = null;
     }
 
     public Task getInfo() { //Если я намеренно делаю package private класс, то как в нём работают public методы...?
