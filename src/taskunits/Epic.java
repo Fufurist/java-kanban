@@ -26,4 +26,28 @@ public class Epic extends Task {
     public void removeAllSubTasks() {
         subTasksIds.clear();
     }
+
+    @Override
+    public String toString() {
+        return String.format("%d,EPIC,%s,%s,%s", getId(), getName(), getStatus().name(),
+                getDescription());
+    }
+
+    public static Epic toEpic(String line){
+        String[] parameters = line.split(",");
+        Epic result = new Epic(parameters[2], parameters[4]);
+        result.setId(Integer.parseInt(parameters[0]));
+        switch (parameters[3]){
+            case "NEW":
+                result.setStatus(TaskStatus.NEW);
+                break;
+            case "IN_PROGRESS":
+                result.setStatus(TaskStatus.IN_PROGRESS);
+                break;
+            case "DONE":
+                result.setStatus(TaskStatus.DONE);
+                break;
+        }
+        return result;
+    }
 }
