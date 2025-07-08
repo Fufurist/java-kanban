@@ -206,7 +206,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeTask(int id) {
         if (tasks.containsKey(id)) {
-            freeIds.addLast(id);//по-факту пользуюсь этим списком как стеком, используя только операции O(1)
+            freeIds.add(id);
             tasks.remove(id);
             history.remove(id);
         }
@@ -216,7 +216,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeEpic(int id) {
         if (epics.containsKey(id)) {
-            freeIds.addLast(id);
+            freeIds.add(id);
             //надо также удалить все подзадачи
             ArrayList<Integer> subs = epics.get(id).getSubTasksIds();
             for (int i : subs) { //поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
@@ -234,7 +234,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTasks.containsKey(id)) {
             epics.get(subTasks.get(id).getEpicId()).removeSubTaskId(id);
             adjustEpicStatus(subTasks.get(id).getEpicId());
-            freeIds.addLast(id);
+            freeIds.add(id);
             subTasks.remove(id);
             history.remove(id);
         }
