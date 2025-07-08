@@ -19,11 +19,11 @@ public class SubTask extends Task {
                 getDescription(), getEpicId());
     }
 
-    public static SubTask toSubTask(String line){
+    public static SubTask toSubTask(String line) {
         String[] parameters = line.split(",");
         SubTask result = new SubTask(parameters[2], parameters[4], TaskStatus.NEW, Integer.parseInt(parameters[5]));
         result.setId(Integer.parseInt(parameters[0]));
-        switch (parameters[3]){
+        switch (parameters[3]) {
             case "NEW":
                 result.setStatus(TaskStatus.NEW);
                 break;

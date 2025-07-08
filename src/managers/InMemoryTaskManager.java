@@ -88,7 +88,7 @@ public class InMemoryTaskManager implements TaskManager {
     // Поэтому, если мы добавляем задачу с ненулевым id, нам надо проверить, свободен ли этот Id, и, если да, присвоить
     // новой задаче именно его. Если не свободен или равен нулю (отрицательному) менеджер сам распределит его на новое
     // место и отправит дальше.
-    private int idHandler(int suggestedId){
+    private int idHandler(int suggestedId) {
         int resultId;
         if (suggestedId <= 0) {
             // Старое назначение свободного id
@@ -103,14 +103,14 @@ public class InMemoryTaskManager implements TaskManager {
             }
         } else if (suggestedId > currentMaxId) {
             //если id вне зоны текущего покрытия
-            while (currentMaxId < suggestedId){
+            while (currentMaxId < suggestedId) {
                 freeIds.add(currentMaxId);
                 currentMaxId++;
             }
             resultId = currentMaxId; // Эквивалентно resultId = suggestedId
             currentMaxId++;
         } else {
-            if (freeIds.contains(suggestedId)){
+            if (freeIds.contains(suggestedId)) {
                 // если id свободен, отмечаем его несвободным, и отправляем далее
                 resultId = suggestedId;
                 freeIds.remove(suggestedId);

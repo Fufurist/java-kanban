@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-public class FileBackedTaskManager extends InMemoryTaskManager{
+public class FileBackedTaskManager extends InMemoryTaskManager {
     //
     private Path saveFile;
 
@@ -24,7 +24,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager{
         this.saveFile = saveFile;
     }
 
-    public FileBackedTaskManager(Path saveFile){
+    public FileBackedTaskManager(Path saveFile) {
         super();
         this.saveFile = saveFile;
     }
@@ -117,47 +117,47 @@ public class FileBackedTaskManager extends InMemoryTaskManager{
     }
 
     //Пусть каждое сохранение перезаписывает файл полностью, медленно, но как ещё?
-    private void save() throws ManagerSaveException{
+    private void save() throws ManagerSaveException {
         try (BufferedWriter buffer =
-                     Files.newBufferedWriter(saveFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)){
+                     Files.newBufferedWriter(saveFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
             buffer.write("id,type,name,status,description,epic");
             buffer.newLine(); //По идее для правильной работы буфера надо делать именно так
             // Поскольку в ТЗ не сказано, что задачи в файле должны быть как-либо упорядочены, предположу, что создавать
             // файлы может только и только этот менеджер. А значит, я могу задать свой порядок сохранения и удобного
             // мне чтения (перед всеми подзадачами будут перечислены все эпики, к которым привяжутся эти подзадачи)
-            for (Task task : getTasks()){
+            for (Task task : getTasks()) {
                 buffer.write(task.toString());
                 buffer.newLine();
             }
-            for (Epic epic : getEpics()){
+            for (Epic epic : getEpics()) {
                 buffer.write(epic.toString());
                 buffer.newLine();
             }
-            for (SubTask subTask : getSubTasks()){
+            for (SubTask subTask : getSubTasks()) {
                 buffer.write(subTask.toString());
                 buffer.newLine();
             }
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new ManagerSaveException("Ещё не умеем обрабатывать такое", e);
         }
     }
 
 
-    public static FileBackedTaskManager loadFromFile(Path path){
+    public static FileBackedTaskManager loadFromFile(Path path) {
         Path tmp;
         try {
             tmp = Files.createTempFile("kanban-tmp", null);
-        } catch (IOException e){
+        } catch (IOException e) {
             return new FileBackedTaskManager(path);
         }
         FileBackedTaskManager result = new FileBackedTaskManager(tmp);
-        try (BufferedReader buffer = Files.newBufferedReader(path, StandardCharsets.UTF_8)){
+        try (BufferedReader buffer = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             String line = buffer.readLine();
-            if (line != null && line.equals("id,type,name,status,description,epic")){
+            if (line != null && line.equals("id,type,name,status,description,epic")) {
                 line = buffer.readLine();
-                while (line != null){
+                while (line != null) {
                     String[] words = line.split(",");
-                    switch (words[1]){
+                    switch (words[1]) {
                         case "TASK":
                             result.addTask(Task.toTask(line));
                             break;
@@ -171,7 +171,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager{
                     line = buffer.readLine();
                 }
             } else System.out.println("It makes no sense!");//Вернёт пустой
-        } catch (IOException e){
+        } catch (IOException e) {
             System.out.println("To be or not to be?");
         }
         //все сохранения шли во временный файл, чтобы не потерять данные с того файла, который читаем

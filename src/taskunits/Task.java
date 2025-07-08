@@ -34,11 +34,11 @@ public class Task {
         return String.format("%d,TASK,%s,%s,%s", id, name, status.name(), description);
     }
 
-    public static Task toTask(String line){
+    public static Task toTask(String line) {
         String[] parameters = line.split(",");
         Task result = new Task(parameters[2], parameters[4], TaskStatus.NEW);
         result.setId(Integer.parseInt(parameters[0]));
-        switch (parameters[3]){
+        switch (parameters[3]) {
             case "NEW":
                 result.setStatus(TaskStatus.NEW);
                 break;

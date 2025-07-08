@@ -33,11 +33,11 @@ public class Epic extends Task {
                 getDescription());
     }
 
-    public static Epic toEpic(String line){
+    public static Epic toEpic(String line) {
         String[] parameters = line.split(",");
         Epic result = new Epic(parameters[2], parameters[4]);
         result.setId(Integer.parseInt(parameters[0]));
-        switch (parameters[3]){
+        switch (parameters[3]) {
             case "NEW":
                 result.setStatus(TaskStatus.NEW);
                 break;
