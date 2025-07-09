@@ -22,16 +22,16 @@ class InMemoryTaskManagerTest {
                 "По очереди выполнить домашнее задание по всем предметам");
         taskManager.addEpic(newEpic);
         SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
-                "Достать Тетрадь, достать Демидовича, сделать номера ...", TaskStatus.NEW, 2);
+                "Достать Тетрадь достать Демидовича сделать номера ...", TaskStatus.NEW, 2);
         taskManager.addSubTask(newSubTask);
         newTask = new Task("Подмести пол",//id - 4
-                "Достать совок и метлу, смести мусор в совок, выкинуть мусор из совка", TaskStatus.NEW);
+                "Достать совок и метлу смести мусор в совок выкинуть мусор из совка", TaskStatus.NEW);
         taskManager.addTask(newTask);
         newEpic = new Epic("Успеть всё",//id - 5
-                "Осталось всего 22 часа, пора поторопиться и завершить этот модуль!");
+                "Осталось всего 22 часа пора поторопиться и завершить этот модуль!");
         taskManager.addEpic(newEpic);
         newSubTask = new SubTask("Сделать ДЗ по Диффурам",//id - 6
-                "Достать Тетрадь, достать Филлипова, сделать номера ...", TaskStatus.NEW, 2);
+                "Достать Тетрадь достать Филлипова сделать номера ...", TaskStatus.NEW, 2);
         taskManager.addSubTask(newSubTask);
         newSubTask = new SubTask("Быстро выполнить пятый спринт",//id - 7
                 "Поторопись! До конца света осталось всего ничего!", TaskStatus.NEW, 5);
@@ -65,7 +65,7 @@ class InMemoryTaskManagerTest {
         newEpic.setId(2);
         Assertions.assertEquals(newEpic.toString(), taskManager.getEpicById(2).toString());
         SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
-                "Достать Тетрадь, достать Демидовича, сделать номера ...", TaskStatus.NEW, 2);
+                "Достать Тетрадь достать Демидовича сделать номера ...", TaskStatus.NEW, 2);
         newSubTask.setId(3);
         Assertions.assertEquals(newSubTask.toString(), taskManager.getSubTaskById(3).toString());
         Assertions.assertEquals(newSubTask.getEpicId(), taskManager.getSubTaskById(3).getEpicId());

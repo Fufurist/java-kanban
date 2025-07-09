@@ -2,16 +2,14 @@ package managers;
 
 import taskunits.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Task> tasks;
     private final Map<Integer, Epic> epics;
     private final Map<Integer, SubTask> subTasks;
-    private final List<Integer> freeIds; //сохраняя освободившиеся id мы делаем их более скомпонованными ближе к 0
+    //Раз уж полез менять реализацию тут, для хранения свободных id как раз подойдёт TreeSet
+    private final NavigableSet<Integer> freeIds;
     private int currentMaxId; //что повышает удобство взаимодействия с ними для пользователя
     private HistoryManager history;
 
@@ -19,7 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subTasks = new HashMap<>();
-        freeIds = new ArrayList<>();
+        freeIds = new TreeSet<>();
         currentMaxId = 1;
         this.history = Managers.getDefaultHistory();
     }
@@ -84,35 +82,66 @@ public class InMemoryTaskManager implements TaskManager {
         return toReturnSubTask;
     }
 
+
+    // Методы add нуждаются в доработке: чтобы корректно загружать задачи из файла, нам надо при добавлении присваивать
+    // задачам конкретный id, который присвоен им в файле.
+    // Поэтому, если мы добавляем задачу с ненулевым id, нам надо проверить, свободен ли этот Id, и, если да, присвоить
+    // новой задаче именно его. Если не свободен или равен нулю (отрицательному) менеджер сам распределит его на новое
+    // место и отправит дальше.
+    private int idHandler(int suggestedId) {
+        int resultId;
+        if (suggestedId <= 0) {
+            // Старое назначение свободного id
+            if (freeIds.isEmpty()) {
+                resultId = currentMaxId;
+                currentMaxId++;
+            } else {
+                // IDEA жалуется на Nullability and data flow problems на pollFirst(), но он не может выдать null,
+                // поскольку перед этим я проверяю, что хоть что-то в наборе есть. Скорее всего IDEA просто не может
+                // обнаружить, что на этом этапе этот метод никак не может выдать null.
+                resultId = freeIds.pollFirst();
+            }
+        } else if (suggestedId > currentMaxId) {
+            //если id вне зоны текущего покрытия
+            while (currentMaxId < suggestedId) {
+                freeIds.add(currentMaxId);
+                currentMaxId++;
+            }
+            resultId = currentMaxId; // Эквивалентно resultId = suggestedId
+            currentMaxId++;
+        } else {
+            if (freeIds.contains(suggestedId)) {
+                // если id свободен, отмечаем его несвободным, и отправляем далее
+                resultId = suggestedId;
+                freeIds.remove(suggestedId);
+            } else {
+                // Если id занят, по стандартной схеме выделяем задаче новый id. Если пользователь вводил ненулевой id,
+                // он сможет проверить, что всё в порядке, сравнив возвращаемый id и тот, который он хотел. Это
+                // просигнализирует ему о его просчёте, если они не совпадут.
+                resultId = currentMaxId;
+                currentMaxId++;
+            }
+        }
+        return resultId;
+    }
+
     @Override
     public int addTask(Task task) {
         if (task == null) return -1;
         Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus());
-        int id;
-        if (freeIds.isEmpty()) {
-            id = currentMaxId;
-            currentMaxId++;
-        } else {
-            id = freeIds.getLast();
-            freeIds.removeLast();
-        }
+        int id = task.getId();
+        id = idHandler(id);
         newTask.setId(id);
         tasks.put(id, newTask);
         return id;
     }
 
     @Override
-    public int addEpic(Epic epic) { //Пока не знаем, что такое перегрузка
+    public int addEpic(Epic epic) {
         if (epic == null) return -1;
         Epic newEpic = new Epic(epic.getName(), epic.getDescription());//статус теперь NEW в конструкторе по умолчанию
-        int id;
-        if (freeIds.isEmpty()) {
-            id = currentMaxId;
-            currentMaxId++;
-        } else {
-            id = freeIds.getLast();
-            freeIds.removeLast();
-        }
+        int id = epic.getId();
+        id = idHandler(id);
         newEpic.setId(id);
         epics.put(id, newEpic);//Новый эпик добавляется с пустым списком подзадач
         return id;
@@ -124,14 +153,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (!epics.containsKey(subTask.getEpicId())) return -1;//если не существует подходящего эпика
         SubTask newSubTask = new SubTask(subTask.getName(), subTask.getDescription(),
                 subTask.getStatus(), subTask.getEpicId());
-        int id;
-        if (freeIds.isEmpty()) {
-            id = currentMaxId;
-            currentMaxId++;
-        } else {
-            id = freeIds.getLast();
-            freeIds.removeLast();
-        }
+        int id = subTask.getId();
+        id = idHandler(id);
         newSubTask.setId(id);
         subTasks.put(id, newSubTask);
         epics.get(subTask.getEpicId()).addSubTask(id);
@@ -183,7 +206,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeTask(int id) {
         if (tasks.containsKey(id)) {
-            freeIds.addLast(id);//по-факту пользуюсь этим списком как стеком, используя только операции O(1)
+            freeIds.add(id);
             tasks.remove(id);
             history.remove(id);
         }
@@ -193,7 +216,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeEpic(int id) {
         if (epics.containsKey(id)) {
-            freeIds.addLast(id);
+            freeIds.add(id);
             //надо также удалить все подзадачи
             ArrayList<Integer> subs = epics.get(id).getSubTasksIds();
             for (int i : subs) { //поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
@@ -211,7 +234,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTasks.containsKey(id)) {
             epics.get(subTasks.get(id).getEpicId()).removeSubTaskId(id);
             adjustEpicStatus(subTasks.get(id).getEpicId());
-            freeIds.addLast(id);
+            freeIds.add(id);
             subTasks.remove(id);
             history.remove(id);
         }
