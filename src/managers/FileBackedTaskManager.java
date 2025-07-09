@@ -172,7 +172,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             } else System.out.println("It makes no sense!");//Вернёт пустой
         } catch (IOException e) {
-            System.out.println("To be or not to be?");
+            throw new ManagerLoadException("Unknown IO exception occured while loading from file", e);
         }
         //все сохранения шли во временный файл, чтобы не потерять данные с того файла, который читаем
         result.setSaveFile(path);
