@@ -60,8 +60,15 @@ public class Task {
         return result;
     }
 
-    public LocalDateTime getEndTime(){
+    public LocalDateTime getEndTime() {
         return startTime.plus(duration);
+    }
+
+    public static int byStartTimeTaskComparator(Task task1, Task task2) {
+        if (task1 == null && task2 == null) return 0;
+        if (task1 == null) return -1;
+        if (task2 == null) return 1;
+        return task1.getStartTime().compareTo(task2.getStartTime());
     }
 
     public void setId(int id) {

@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class FileBackedTaskManagerTester {
@@ -45,25 +47,30 @@ public class FileBackedTaskManagerTester {
 
             TaskManager taskManager = FileBackedTaskManager.loadFromFile(file1);
             Task newTask = new Task("Помыть посуду",//id - 1
-                    "Прийти на кухню и вымыть все грязные тарелки", TaskStatus.IN_PROGRESS);
+                    "Прийти на кухню и вымыть все грязные тарелки", TaskStatus.IN_PROGRESS,
+                    LocalDateTime.of(2025,7,12,12,0), Duration.ofMinutes(30));
             taskManager.addTask(newTask);
             Epic newEpic = new Epic("Сделать домашку",// id - 2
                     "По очереди выполнить домашнее задание по всем предметам");
             taskManager.addEpic(newEpic);
             SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
-                    "Достать Тетрадь достать Демидовича сделать номера ...", TaskStatus.NEW, 2);
+                    "Достать Тетрадь достать Демидовича сделать номера ...", TaskStatus.NEW,
+                    LocalDateTime.of(2025,7,12,12,0).plusMinutes(30), Duration.ofMinutes(30),  2);
             taskManager.addSubTask(newSubTask);
             newTask = new Task("Подмести пол",//id - 4
-                    "Достать совок и метлу смести мусор в совок выкинуть мусор из совка", TaskStatus.NEW);
+                    "Достать совок и метлу смести мусор в совок выкинуть мусор из совка", TaskStatus.NEW,
+                    LocalDateTime.of(2025,7,12,12,0).plusMinutes(60), Duration.ofMinutes(30));
             taskManager.addTask(newTask);
             newEpic = new Epic("Успеть всё",//id - 5
                     "Осталось всего 22 часа пора поторопиться и завершить этот модуль!");
             taskManager.addEpic(newEpic);
             newSubTask = new SubTask("Сделать ДЗ по Диффурам",//id - 6
-                    "Достать Тетрадь достать Филлипова сделать номера ...", TaskStatus.NEW, 2);
+                    "Достать Тетрадь достать Филлипова сделать номера ...", TaskStatus.NEW,
+                    LocalDateTime.of(2025,7,12,12,0).plusMinutes(90), Duration.ofMinutes(30), 2);
             taskManager.addSubTask(newSubTask);
             newSubTask = new SubTask("Быстро выполнить пятый спринт",//id - 7
-                    "Поторопись! До конца света осталось всего ничего!", TaskStatus.NEW, 5);
+                    "Поторопись! До конца света осталось всего ничего!", TaskStatus.NEW,
+                    LocalDateTime.of(2025,7,12,12,0).plusMinutes(120), Duration.ofMinutes(30), 5);
             taskManager.addSubTask(newSubTask);
 
             Files.copy(file1, file2, StandardCopyOption.REPLACE_EXISTING);
@@ -71,15 +78,15 @@ public class FileBackedTaskManagerTester {
             TaskManager manager2 = FileBackedTaskManager.loadFromFile(file2);
 
             for (Task task : taskManager.getTasks()){
-                System.out.println(task.toString());
+                //System.out.println(task.toString());
                 Assertions.assertEquals(task.toString(), manager2.getTaskById(task.getId()).toString());
             }
             for (Epic task : taskManager.getEpics()){
-                System.out.println(task.toString());
+                //System.out.println(task.toString());
                 Assertions.assertEquals(task.toString(), manager2.getEpicById(task.getId()).toString());
             }
             for (SubTask task : taskManager.getSubTasks()){
-                System.out.println(task.toString());
+                //System.out.println(task.toString());
                 Assertions.assertEquals(task.toString(), manager2.getSubTaskById(task.getId()).toString());
             }
 

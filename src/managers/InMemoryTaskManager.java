@@ -2,6 +2,8 @@ package managers;
 
 import taskunits.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -11,7 +13,8 @@ public class InMemoryTaskManager implements TaskManager {
     //Раз уж полез менять реализацию тут, для хранения свободных id как раз подойдёт TreeSet
     private final NavigableSet<Integer> freeIds;
     private int currentMaxId; //что повышает удобство взаимодействия с ними для пользователя
-    private HistoryManager history;
+    private final HistoryManager history;
+    private final NavigableSet<Task> prioritySortedTaskSet;
 
     public InMemoryTaskManager() {
         tasks = new HashMap<>();
@@ -20,6 +23,7 @@ public class InMemoryTaskManager implements TaskManager {
         freeIds = new TreeSet<>();
         currentMaxId = 1;
         this.history = Managers.getDefaultHistory();
+        this.prioritySortedTaskSet = new TreeSet<>(Task::byStartTimeTaskComparator);// Не вижу смысла в отдельном классе
     }
 
     @Override
@@ -44,6 +48,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.clear();
         freeIds.clear();
         currentMaxId = 1;
+        prioritySortedTaskSet.clear();
     } //раздельные методы чистки каждой подкатегории сильно ниже
 
     @Override
@@ -51,7 +56,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (!tasks.containsKey(id)) return null;
         //Оставлю по одной копии(
         Task copiedTask = tasks.get(id);
-        Task toReturnTask = new Task(copiedTask.getName(), copiedTask.getDescription(), copiedTask.getStatus());
+        Task toReturnTask = new Task(copiedTask.getName(), copiedTask.getDescription(), copiedTask.getStatus(),
+                copiedTask.getStartTime(), copiedTask.getDuration());
         toReturnTask.setId(copiedTask.getId());
         //Скопировал все поля
         history.add(toReturnTask);
@@ -64,6 +70,10 @@ public class InMemoryTaskManager implements TaskManager {
         Epic copiedEpic = epics.get(id);
         Epic toReturnEpic = new Epic(copiedEpic.getName(), copiedEpic.getDescription());
         toReturnEpic.setId(copiedEpic.getId());
+        toReturnEpic.setStartTime(copiedEpic.getStartTime());
+        toReturnEpic.setDuration(copiedEpic.getDuration());
+        toReturnEpic.setEndTime(copiedEpic.getEndTime());
+        toReturnEpic.setStatus(copiedEpic.getStatus());
         for (int i : copiedEpic.getSubTasksIds()) { //вручную скопировать список подзадач
             toReturnEpic.addSubTask(i);
         }
@@ -76,7 +86,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (!subTasks.containsKey(id)) return null;
         SubTask copiedSubTask = subTasks.get(id);
         SubTask toReturnSubTask = new SubTask(copiedSubTask.getName(), copiedSubTask.getDescription(),
-                copiedSubTask.getStatus(), copiedSubTask.getEpicId());
+                copiedSubTask.getStatus(), copiedSubTask.getStartTime(), copiedSubTask.getDuration(),
+                copiedSubTask.getEpicId());
         toReturnSubTask.setId(copiedSubTask.getId());
         history.add(toReturnSubTask);
         return toReturnSubTask;
@@ -128,22 +139,27 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addTask(Task task) {
         if (task == null) return -1;
-        Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus());
+        Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus(),
+                task.getStartTime(), task.getDuration());
         int id = task.getId();
         id = idHandler(id);
         newTask.setId(id);
+        if (overlapCheck(newTask)) return -1;
         tasks.put(id, newTask);
+        prioritySortedTaskSet.add(newTask);
         return id;
     }
 
     @Override
     public int addEpic(Epic epic) {
         if (epic == null) return -1;
-        Epic newEpic = new Epic(epic.getName(), epic.getDescription());//статус теперь NEW в конструкторе по умолчанию
+        //Всё кроме имени и описания в чистом эпике - плейсхолдеры, манагер сам будет назначать остальные поля
+        Epic newEpic = new Epic(epic.getName(), epic.getDescription());
         int id = epic.getId();
         id = idHandler(id);
         newEpic.setId(id);
         epics.put(id, newEpic);//Новый эпик добавляется с пустым списком подзадач
+        //Эпики не будут содержаться в списке приоритетов, потому что они дублируют свои подзадачи
         return id;
     }
 
@@ -152,11 +168,13 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTask == null) return -1;
         if (!epics.containsKey(subTask.getEpicId())) return -1;//если не существует подходящего эпика
         SubTask newSubTask = new SubTask(subTask.getName(), subTask.getDescription(),
-                subTask.getStatus(), subTask.getEpicId());
+                subTask.getStatus(), subTask.getStartTime(), subTask.getDuration(), subTask.getEpicId());
         int id = subTask.getId();
         id = idHandler(id);
         newSubTask.setId(id);
+        if (overlapCheck(newSubTask)) return -1;
         subTasks.put(id, newSubTask);
+        prioritySortedTaskSet.add(newSubTask);
         epics.get(subTask.getEpicId()).addSubTask(id);
         adjustEpicStatus(subTask.getEpicId());
         return id;
@@ -165,14 +183,21 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean updateTask(Task task) { //на этом моменте ИДЕЯ предложила добавить параметр @notNull
         if (task == null) return false;//поэтому решил перестраховаться еще больше и везде воткнуть проверку параметра
-        if (tasks.containsKey(task.getId())) {
-            Task upTask = tasks.get(task.getId());
-            upTask.setName(task.getName());
-            upTask.setDescription(task.getDescription());
-            upTask.setStatus(task.getStatus());
-            return true;
+        if (!tasks.containsKey(task.getId())) return false;
+        Task upTask = tasks.get(task.getId());
+        //Удаление и возвращение в дерево нужны, чтобы обновить порядок.
+        prioritySortedTaskSet.remove(upTask);
+        if (overlapCheck(task)) {
+            prioritySortedTaskSet.add(upTask);
+            return false;
         }
-        return false;
+        upTask.setName(task.getName());
+        upTask.setDescription(task.getDescription());
+        upTask.setStatus(task.getStatus());
+        upTask.setStartTime(task.getStartTime());
+        upTask.setDuration(task.getDuration());
+        prioritySortedTaskSet.add(upTask);
+        return true;
     }
 
     @Override
@@ -190,17 +215,23 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean updateSubTask(SubTask subTask) {
         if (subTask == null) return false;
-        if (subTasks.containsKey(subTask.getId())) {
-            SubTask upSubTask = subTasks.get(subTask.getId());
-            if (upSubTask.getEpicId() == subTask.getEpicId()) { //проверяем, что новый принадлежит тому же эпику
-                upSubTask.setName(subTask.getName());
-                upSubTask.setDescription(subTask.getDescription());
-                upSubTask.setStatus(subTask.getStatus());
-                adjustEpicStatus(upSubTask.getEpicId());
-                return true;
-            }
+        if (!subTasks.containsKey(subTask.getId())) return false;
+        SubTask upSubTask = subTasks.get(subTask.getId());
+        if (upSubTask.getEpicId() != subTask.getEpicId()) return false; //проверяем, что новый принадлежит тому же эпику
+        prioritySortedTaskSet.remove(upSubTask);
+        if (overlapCheck(subTask)) { // и не будет оверлапиться
+            prioritySortedTaskSet.add(upSubTask);
+            return false;
         }
-        return false;
+        upSubTask.setName(subTask.getName());
+        upSubTask.setDescription(subTask.getDescription());
+        upSubTask.setStatus(subTask.getStatus());
+        adjustEpicStatus(upSubTask.getEpicId());
+        adjustEpicTime(upSubTask.getEpicId());
+        upSubTask.setStartTime(subTask.getStartTime());
+        upSubTask.setDuration(subTask.getDuration());
+        prioritySortedTaskSet.add(upSubTask);
+        return true;
     }
 
     @Override
@@ -209,6 +240,7 @@ public class InMemoryTaskManager implements TaskManager {
             freeIds.add(id);
             tasks.remove(id);
             history.remove(id);
+            prioritySortedTaskSet.remove(tasks.get(id));
         }
         return false;
     }
@@ -222,6 +254,7 @@ public class InMemoryTaskManager implements TaskManager {
             for (int i : subs) { //поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
                 subTasks.remove(i);
                 history.remove(i);
+                prioritySortedTaskSet.remove(subTasks.get(i));
             }
             epics.remove(id);
             history.remove(id);
@@ -232,8 +265,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeSubTask(int id) {
         if (subTasks.containsKey(id)) {
+            System.out.println(prioritySortedTaskSet);
+            prioritySortedTaskSet.remove(subTasks.get(id));
             epics.get(subTasks.get(id).getEpicId()).removeSubTaskId(id);
             adjustEpicStatus(subTasks.get(id).getEpicId());
+            adjustEpicTime(subTasks.get(id).getEpicId());
             freeIds.add(id);
             subTasks.remove(id);
             history.remove(id);
@@ -322,6 +358,64 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setStatus(TaskStatus.IN_PROGRESS);
         }
     }
+
+    private boolean overlapCheck(Task task) {
+        if (task == null) return true;
+        if (prioritySortedTaskSet.contains(task)) return true;
+        Task prev = prioritySortedTaskSet.lower(task);
+        if (prev != null && prev.getEndTime().isAfter(task.getStartTime())) return true;
+        Task next = prioritySortedTaskSet.higher(task);
+        return next != null && task.getEndTime().isAfter(next.getStartTime());
+    }
+
+    private void adjustEpicTime(int id) {
+        Epic epic = getEpicById(id);
+        //Тяжело решить что лучше: получить неупорядоченный список подзадач эпика, и три раза пройтись по нему в поисках
+        //наименьшего, суммы, и наибольшего, или же один раз пройтись про всему приоритетному списку задач проверяя
+        // каждую на соответствие её id с id подзадач эпика, чтобы на выходе получить сортированный по приоритету список
+        // этих самых подзадач, чтобы потом получить время начала первого и конца последнего, и один рах пройтись по
+        // нему, считая сумму длительностей.
+        // На первый взгляд видится мне, что три раза пройтись по списку подзадач одного эпика в среднем должно быть
+        // быстрее, чем шерстить весь список задач по приоритетам, чтобы из него выловить уже отсортированный.
+        // Ещё ФП меня пугает страшной неоптимизированностью в яве. Цикл for each потребовал бы только одного прохода по
+        // списку подзадач для выполнения всех трёх действий (min max и sum) но по ФП это преобразование занимет в три
+        // раза больше времени. Я вижу плюс Стримов, когда от нас требуется какое-то определённое преобразование над
+        // однотипными данными, однако в любых других проявлениях принцип неизменяемости данных приводит к гигантским
+        // тратам памяти на промежуточные состояния и рекурсивный вызов функций. Скорость исполнения кода так же
+        // страдает из-за этого. Любое промежуточное состояние функции или данных требует обращения к памяти.
+        // Читаемость кода сомнительная, поскольку после ФП получается лаконичный исполняемый код и неизвестно как
+        // упорядоченные, разбросанные по усмотрению разработчика реализации этих функций, что делает работу с таким
+        // кодом удобной лишь в специализированных очень высоких IDE.
+
+        // Итого вывод, что ФП - это теория, которая предоставляет некоторые удобные инструменты(Stream), однако
+        // совершенно не подходит для низкоуровневой разработки из-за чудовищной неоптимизированности расхода памяти.
+        // На плаву её держат только костыли в виде больших кэшей, которые способны выдержать n-мерные рекурсии без
+        // значительной потери производительности. Может на архитектуре оптимизированной под ФП в нём и есть смысл,
+        // однако в контексте структуры языка java ФП построен на костылях ООП, который делает его неконкурентным в
+        // плоскости быстродействия.
+        List<SubTask> itsSubTasks = epic.getSubTasksIds().stream().map(subTasks::get).toList();
+        if (itsSubTasks.isEmpty()) {
+            epic.setStartTime(LocalDateTime.of(0, 1, 1, 0, 0));
+            epic.setDuration(Duration.ofMinutes(1));
+            epic.setEndTime(LocalDateTime.of(0, 1, 1, 0, 1));
+        } else {
+            epic.setStartTime(itsSubTasks.stream()
+                    .map(SubTask::getStartTime)
+                    .min(LocalDateTime::compareTo).get());
+            epic.setDuration(itsSubTasks.stream()
+                    .map(SubTask::getDuration)
+                    .reduce(Duration::plus).get());
+            epic.setEndTime(itsSubTasks.stream()
+                    .map(SubTask::getStartTime)
+                    .max(LocalDateTime::compareTo).get());
+        }
+    }
+
+    /*
+    public NavigableSet<Task> getPrioritizedTasks(){
+        return new TreeSet<>(prioritySortedTaskSet);
+    }
+    */
 
     @Override
     public List<Task> getHistory() {

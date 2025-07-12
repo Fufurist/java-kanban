@@ -6,10 +6,14 @@ import java.util.ArrayList;
 
 public class Epic extends Task {
     private final ArrayList<Integer> subTasksIds;
+    private LocalDateTime endTime;
 
     //Поскольку теперь менеджер сам меняет поля, пользователям не нужно самим указывать список подзадач
-    public Epic(String name, String description, LocalDateTime startTime, Duration duration) {
-        super(name, description, TaskStatus.NEW, startTime, duration);//пусть по умолчанию новый будет
+    public Epic(String name, String description) {
+        //сюда нужны плейсхолдеры до прибавления первых подзадач
+        super(name, description, TaskStatus.NEW,
+                LocalDateTime.of(0, 1, 1, 0, 0), Duration.ofMinutes(1));
+        this.endTime = LocalDateTime.of(0, 1, 1, 0, 0);
         this.subTasksIds = new ArrayList<>();
     }
 
@@ -31,14 +35,14 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return String.format("%d,Epic,%s,%s,%s,%s,%d", getId(), getName(), getStatus().name(),
+        return String.format("%d,EPIC,%s,%s,%s,%s,%d", getId(), getName(), getStatus().name(),
                 getDescription(), getStartTime().toString(), getDuration().toMinutes());
     }
 
     public static Epic toEpic(String line) {
         String[] parameters = line.split(",");
-        Epic result = new Epic(parameters[2], parameters[4], LocalDateTime.parse(parameters[5]),
-                Duration.ofMinutes(Long.parseLong(parameters[6])));
+        Epic result = new Epic(parameters[2], parameters[4]);
+        //время/длительность сохранятся, но при загрузке из файла все равно высчитаются снова из привязанных подзадач
         result.setId(Integer.parseInt(parameters[0]));
         switch (parameters[3]) {
             case "NEW":
@@ -52,5 +56,14 @@ public class Epic extends Task {
                 break;
         }
         return result;
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 }
