@@ -1,18 +1,24 @@
 package taskunits;
 
+import java.time.Duration;
 import java.util.Objects;
+import java.time.LocalDateTime;
 
 public class Task {
     private int id;
     private String name;
     private String description;
     private TaskStatus status;
+    private LocalDateTime startTime;
+    private Duration duration;
 
-    public Task(String name, String description, TaskStatus status) {
+    public Task(String name, String description, TaskStatus status, LocalDateTime startTime, Duration duration) {
         this.id = 0;
         this.name = name;
         this.description = description;
         this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     @Override //Переопределяю метод как учили в 4 спринте
@@ -31,12 +37,14 @@ public class Task {
 
     @Override
     public String toString() {
-        return String.format("%d,TASK,%s,%s,%s", id, name, status.name(), description);
+        return String.format("%d,TASK,%s,%s,%s,%s,%d",
+                id, name, status.name(), description, startTime.toString(), duration.toMinutes());
     }
 
     public static Task toTask(String line) {
         String[] parameters = line.split(",");
-        Task result = new Task(parameters[2], parameters[4], TaskStatus.NEW);
+        Task result = new Task(parameters[2], parameters[4], TaskStatus.NEW,
+                LocalDateTime.parse(parameters[5]), Duration.ofMinutes(Long.parseLong(parameters[6])));
         result.setId(Integer.parseInt(parameters[0]));
         switch (parameters[3]) {
             case "NEW":
@@ -50,6 +58,10 @@ public class Task {
                 break;
         }
         return result;
+    }
+
+    public LocalDateTime getEndTime(){
+        return startTime.plus(duration);
     }
 
     public void setId(int id) {
@@ -68,6 +80,14 @@ public class Task {
         this.status = status;
     }
 
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
     public int getId() {
         return id;
     }
@@ -82,5 +102,13 @@ public class Task {
 
     public TaskStatus getStatus() {
         return status;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 }
