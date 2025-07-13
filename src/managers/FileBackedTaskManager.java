@@ -120,7 +120,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void save() throws ManagerSaveException {
         try (BufferedWriter buffer =
                      Files.newBufferedWriter(saveFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
-            buffer.write("id,type,name,status,description,epic");
+            buffer.write("id,type,name,status,description,startTime,duration,epic");
             buffer.newLine(); //По идее для правильной работы буфера надо делать именно так
             // Поскольку в ТЗ не сказано, что задачи в файле должны быть как-либо упорядочены, предположу, что создавать
             // файлы может только и только этот менеджер. А значит, я могу задать свой порядок сохранения и удобного
@@ -153,7 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager result = new FileBackedTaskManager(tmp);
         try (BufferedReader buffer = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             String line = buffer.readLine();
-            if (line != null && line.equals("id,type,name,status,description,epic")) {
+            if (line != null && line.equals("id,type,name,status,description,startTime,duration,epic")) {
                 line = buffer.readLine();
                 while (line != null) {
                     String[] words = line.split(",");
