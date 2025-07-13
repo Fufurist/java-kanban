@@ -429,7 +429,7 @@ public class InMemoryTaskManager implements TaskManager {
     //Закомментировал потому что в ТЗ упоминается, что мы не меняем сигнатуру Интерфейса.
     //Не уверен, позволено ли реализациям добавлять собственные публичные методы, когда они являются строго реализацией.
     //А изнутри объекта получить этот сет можно просто обратившись к нему
-    public NavigableSet<Task> getPrioritizedTasks(){
+    public NavigableSet<Task> getPrioritizedTasks() {
         return new TreeSet<>(prioritySortedTaskSet);
     }
 
