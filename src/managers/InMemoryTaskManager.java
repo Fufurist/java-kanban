@@ -139,14 +139,14 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addTask(Task task) {
         if (task == null) return -1;
+        if (overlapCheck(task)) return -1;
         Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus(),
                 task.getStartTime(), task.getDuration());
         int id = task.getId();
         id = idHandler(id);
         newTask.setId(id);
-        if (overlapCheck(newTask)) return -1;
         tasks.put(id, newTask);
-        prioritySortedTaskSet.add(newTask);
+        if (newTask.getStartTime() != null) prioritySortedTaskSet.add(newTask);
         return id;
     }
 
@@ -166,17 +166,18 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addSubTask(SubTask subTask) {
         if (subTask == null) return -1;
+        if (overlapCheck(subTask)) return -1;
         if (!epics.containsKey(subTask.getEpicId())) return -1;//если не существует подходящего эпика
         SubTask newSubTask = new SubTask(subTask.getName(), subTask.getDescription(),
                 subTask.getStatus(), subTask.getStartTime(), subTask.getDuration(), subTask.getEpicId());
         int id = subTask.getId();
         id = idHandler(id);
         newSubTask.setId(id);
-        if (overlapCheck(newSubTask)) return -1;
         subTasks.put(id, newSubTask);
-        prioritySortedTaskSet.add(newSubTask);
+        if (newSubTask.getStartTime() != null) prioritySortedTaskSet.add(newSubTask);
         epics.get(subTask.getEpicId()).addSubTask(id);
         adjustEpicStatus(subTask.getEpicId());
+        adjustEpicTime(subTask.getEpicId());
         return id;
     }
 
@@ -186,17 +187,21 @@ public class InMemoryTaskManager implements TaskManager {
         if (!tasks.containsKey(task.getId())) return false;
         Task upTask = tasks.get(task.getId());
         //Удаление и возвращение в дерево нужны, чтобы обновить порядок.
-        prioritySortedTaskSet.remove(upTask);
-        if (overlapCheck(task)) {
-            prioritySortedTaskSet.add(upTask);
-            return false;
+        if (upTask.getStartTime() != null) {
+            prioritySortedTaskSet.remove(upTask);
+            if (overlapCheck(task)) {
+                prioritySortedTaskSet.add(upTask);
+                return false;
+            }
+        } else {
+            if (overlapCheck(task)) return false;
         }
         upTask.setName(task.getName());
         upTask.setDescription(task.getDescription());
         upTask.setStatus(task.getStatus());
         upTask.setStartTime(task.getStartTime());
         upTask.setDuration(task.getDuration());
-        prioritySortedTaskSet.add(upTask);
+        if (upTask.getStartTime() != null) prioritySortedTaskSet.add(upTask);
         return true;
     }
 
@@ -206,8 +211,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (tasks.containsKey(epic.getId())) {
             Epic upEpic = epics.get(epic.getId());
             upEpic.setName(epic.getName());
-            upEpic.setDescription(epic.getDescription());//убрал замену статуса
-            return true;//изменять список подзадач пользователю не положено
+            upEpic.setDescription(epic.getDescription());
+            return true;//изменять что-либо кроме имени и описания пользователю не положено
         }
         return false;
     }
@@ -218,29 +223,33 @@ public class InMemoryTaskManager implements TaskManager {
         if (!subTasks.containsKey(subTask.getId())) return false;
         SubTask upSubTask = subTasks.get(subTask.getId());
         if (upSubTask.getEpicId() != subTask.getEpicId()) return false; //проверяем, что новый принадлежит тому же эпику
-        prioritySortedTaskSet.remove(upSubTask);
-        if (overlapCheck(subTask)) { // и не будет оверлапиться
-            prioritySortedTaskSet.add(upSubTask);
-            return false;
+        if (upSubTask.getStartTime() != null) {
+            prioritySortedTaskSet.remove(upSubTask);
+            if (overlapCheck(subTask)) { // и не будет оверлапиться
+                prioritySortedTaskSet.add(upSubTask);
+                return false;
+            }
+        }else {
+            if (overlapCheck(subTask)) return false;
         }
         upSubTask.setName(subTask.getName());
         upSubTask.setDescription(subTask.getDescription());
         upSubTask.setStatus(subTask.getStatus());
-        adjustEpicStatus(upSubTask.getEpicId());
-        adjustEpicTime(upSubTask.getEpicId());
         upSubTask.setStartTime(subTask.getStartTime());
         upSubTask.setDuration(subTask.getDuration());
-        prioritySortedTaskSet.add(upSubTask);
+        if (upSubTask.getStartTime() != null) prioritySortedTaskSet.add(upSubTask);
+        adjustEpicStatus(upSubTask.getEpicId());
+        adjustEpicTime(upSubTask.getEpicId());
         return true;
     }
 
     @Override
     public boolean removeTask(int id) {
         if (tasks.containsKey(id)) {
+            if (tasks.get(id).getStartTime() != null) prioritySortedTaskSet.remove(tasks.get(id));
             freeIds.add(id);
             tasks.remove(id);
             history.remove(id);
-            prioritySortedTaskSet.remove(tasks.get(id));
         }
         return false;
     }
@@ -252,9 +261,9 @@ public class InMemoryTaskManager implements TaskManager {
             //надо также удалить все подзадачи
             ArrayList<Integer> subs = epics.get(id).getSubTasksIds();
             for (int i : subs) { //поскольку сами ведём список подзадач, можем быть уверены, что в нём валидные id
+                if (subTasks.get(i).getStartTime() != null) prioritySortedTaskSet.remove(subTasks.get(i));
                 subTasks.remove(i);
                 history.remove(i);
-                prioritySortedTaskSet.remove(subTasks.get(i));
             }
             epics.remove(id);
             history.remove(id);
@@ -265,8 +274,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeSubTask(int id) {
         if (subTasks.containsKey(id)) {
-            System.out.println(prioritySortedTaskSet);
-            prioritySortedTaskSet.remove(subTasks.get(id));
+            if (subTasks.get(id).getStartTime() != null)prioritySortedTaskSet.remove(subTasks.get(id));
             epics.get(subTasks.get(id).getEpicId()).removeSubTaskId(id);
             adjustEpicStatus(subTasks.get(id).getEpicId());
             adjustEpicTime(subTasks.get(id).getEpicId());
@@ -296,6 +304,7 @@ public class InMemoryTaskManager implements TaskManager {
         freeIds.addAll(tasks.keySet());
         for (Integer id : tasks.keySet()) {
             history.remove(id);
+            if (tasks.get(id).getStartTime() != null) prioritySortedTaskSet.remove(tasks.get(id));
         }
         tasks.clear();
     }
@@ -305,10 +314,12 @@ public class InMemoryTaskManager implements TaskManager {
         for (Epic epic : epics.values()) {
             epic.removeAllSubTasks();
             adjustEpicStatus(epic.getId());//поскольку список подзадач пустой, метод выйдет уже после второй проверки
+            adjustEpicTime(epic.getId()); //Если у эпика нет списка подзадач, то ничего не найдётся
         }
         freeIds.addAll(subTasks.keySet());
         for (Integer id : subTasks.keySet()) {
             history.remove(id);
+            if (subTasks.get(id).getStartTime() != null) prioritySortedTaskSet.remove(subTasks.get(id));
         }
         subTasks.clear();
     }
@@ -323,6 +334,7 @@ public class InMemoryTaskManager implements TaskManager {
         freeIds.addAll(subTasks.keySet());//подзадачи не существуют без эпиков
         for (Integer id : subTasks.keySet()) {
             history.remove(id);
+            if (subTasks.get(id).getStartTime() != null) prioritySortedTaskSet.remove(subTasks.get(id));
         }
         subTasks.clear();
     }
@@ -369,7 +381,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void adjustEpicTime(int id) {
-        Epic epic = getEpicById(id);
+        Epic epic = epics.get(id);
         //Тяжело решить что лучше: получить неупорядоченный список подзадач эпика, и три раза пройтись по нему в поисках
         //наименьшего, суммы, и наибольшего, или же один раз пройтись про всему приоритетному списку задач проверяя
         // каждую на соответствие её id с id подзадач эпика, чтобы на выходе получить сортированный по приоритету список
@@ -395,23 +407,28 @@ public class InMemoryTaskManager implements TaskManager {
         // плоскости быстродействия.
         List<SubTask> itsSubTasks = epic.getSubTasksIds().stream().map(subTasks::get).toList();
         if (itsSubTasks.isEmpty()) {
-            epic.setStartTime(LocalDateTime.of(0, 1, 1, 0, 0));
-            epic.setDuration(Duration.ofMinutes(1));
-            epic.setEndTime(LocalDateTime.of(0, 1, 1, 0, 1));
+            epic.setStartTime(null);
+            epic.setDuration(Duration.ofMinutes(0));
+            epic.setEndTime(null);
         } else {
             epic.setStartTime(itsSubTasks.stream()
                     .map(SubTask::getStartTime)
-                    .min(LocalDateTime::compareTo).get());
+                    .filter(Objects::nonNull)
+                    .min(LocalDateTime::compareTo).orElse(null));
             epic.setDuration(itsSubTasks.stream()
+                    .filter(sub -> sub.getStartTime() != null)
                     .map(SubTask::getDuration)
-                    .reduce(Duration::plus).get());
+                    .reduce(Duration::plus).orElse(Duration.ofMinutes(0)));
             epic.setEndTime(itsSubTasks.stream()
-                    .map(SubTask::getStartTime)
-                    .max(LocalDateTime::compareTo).get());
+                    .filter(sub -> sub.getStartTime() != null)
+                    .map(SubTask::getEndTime)
+                    .max(LocalDateTime::compareTo).orElse(null));
         }
     }
 
-    /*
+    /* Закомментировал потому что в ТЗ упоминается, что мы не меняем сигнатуру Интерфейса.
+    Не уверен, позволено ли реализациям добавлять собственные публичные методы, когда они являются строго реализацией.
+    А изнутри объекта получить этот сет можно просто обратившись к нему
     public NavigableSet<Task> getPrioritizedTasks(){
         return new TreeSet<>(prioritySortedTaskSet);
     }

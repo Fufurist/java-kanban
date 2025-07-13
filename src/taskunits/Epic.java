@@ -12,8 +12,8 @@ public class Epic extends Task {
     public Epic(String name, String description) {
         //сюда нужны плейсхолдеры до прибавления первых подзадач
         super(name, description, TaskStatus.NEW,
-                LocalDateTime.of(0, 1, 1, 0, 0), Duration.ofMinutes(1));
-        this.endTime = LocalDateTime.of(0, 1, 1, 0, 0);
+                null, Duration.ofMinutes(0));
+        this.endTime = null;
         this.subTasksIds = new ArrayList<>();
     }
 
@@ -36,7 +36,8 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return String.format("%d,EPIC,%s,%s,%s,%s,%d", getId(), getName(), getStatus().name(),
-                getDescription(), getStartTime().toString(), getDuration().toMinutes());
+                getDescription(), getStartTime() != null ? getStartTime().toString() : "null",
+                getDuration().toMinutes());
     }
 
     public static Epic toEpic(String line) {

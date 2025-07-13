@@ -93,6 +93,8 @@ class InMemoryTaskManagerTest {
         Epic newEpic = new Epic("Сделать домашку",// id - 2
                 "По очереди выполнить домашнее задание по всем предметам");
         newEpic.setId(2);
+        newEpic.setStartTime(LocalDateTime.parse("2025-07-12T12:30"));
+        newEpic.setDuration(Duration.ofMinutes(60));
         Assertions.assertEquals(newEpic.toString(), taskManager.getEpicById(2).toString());
         SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
                 "Достать Тетрадь достать Демидовича сделать номера ...", TaskStatus.NEW,

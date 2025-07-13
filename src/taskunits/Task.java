@@ -38,13 +38,15 @@ public class Task {
     @Override
     public String toString() {
         return String.format("%d,TASK,%s,%s,%s,%s,%d",
-                id, name, status.name(), description, startTime.toString(), duration.toMinutes());
+                id, name, status.name(), description,
+                startTime != null ? startTime.toString() : "null", duration.toMinutes());
     }
 
     public static Task toTask(String line) {
         String[] parameters = line.split(",");
         Task result = new Task(parameters[2], parameters[4], TaskStatus.NEW,
-                LocalDateTime.parse(parameters[5]), Duration.ofMinutes(Long.parseLong(parameters[6])));
+                parameters[5].equals("null") ? null : LocalDateTime.parse(parameters[5]),
+                Duration.ofMinutes(Long.parseLong(parameters[6])));
         result.setId(Integer.parseInt(parameters[0]));
         switch (parameters[3]) {
             case "NEW":
