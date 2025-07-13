@@ -229,7 +229,7 @@ public class InMemoryTaskManager implements TaskManager {
                 prioritySortedTaskSet.add(upSubTask);
                 return false;
             }
-        }else {
+        } else {
             if (overlapCheck(subTask)) return false;
         }
         upSubTask.setName(subTask.getName());
@@ -274,7 +274,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean removeSubTask(int id) {
         if (subTasks.containsKey(id)) {
-            if (subTasks.get(id).getStartTime() != null)prioritySortedTaskSet.remove(subTasks.get(id));
+            if (subTasks.get(id).getStartTime() != null) prioritySortedTaskSet.remove(subTasks.get(id));
             epics.get(subTasks.get(id).getEpicId()).removeSubTaskId(id);
             adjustEpicStatus(subTasks.get(id).getEpicId());
             adjustEpicTime(subTasks.get(id).getEpicId());
