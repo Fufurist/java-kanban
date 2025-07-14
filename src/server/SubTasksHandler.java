@@ -35,9 +35,9 @@ public class SubTasksHandler extends BaseHttpHandler {
                     else sendText(exchange, gson.toJson(subTask));
                     break;
                 case "POST":
-                    try (InputStream iS = exchange.getRequestBody()){
+                    try (InputStream iS = exchange.getRequestBody()) {
                         subTask = gson.fromJson(new String(iS.readAllBytes(), SERVER_DEFAULT_CHARSET), SubTask.class);
-                        if(subTask.getId() <= 0) {
+                        if (subTask.getId() <= 0) {
                             id = taskManager.addSubTask(subTask);
                             if (id == -1) sendHasOverlaps(exchange);
                             sendText(exchange, null);

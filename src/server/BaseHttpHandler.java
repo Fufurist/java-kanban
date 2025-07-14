@@ -21,11 +21,11 @@ public abstract class BaseHttpHandler implements HttpHandler {
         }
     }
 
-    protected void sendNotFound(HttpExchange exchange) throws IOException{
+    protected void sendNotFound(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(404, -1);
     }
 
-    protected void sendHasOverlaps(HttpExchange exchange) throws IOException{
+    protected void sendHasOverlaps(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(406, -1);
     }
 }

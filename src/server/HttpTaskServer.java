@@ -30,11 +30,11 @@ public class HttpTaskServer {
         }
     }
 
-    public void start(){
+    public void start() {
         server.start();
     }
 
-    public void stop(){
+    public void stop() {
         server.stop(0);
     }
 }

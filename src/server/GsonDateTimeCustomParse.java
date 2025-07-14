@@ -14,7 +14,7 @@ public class GsonDateTimeCustomParse extends TypeAdapter<LocalDateTime> {
 
     @Override
     public void write(JsonWriter jsonWriter, LocalDateTime localDateTime) throws IOException {
-        if (localDateTime == null){
+        if (localDateTime == null) {
             jsonWriter.nullValue();
             return;
         }
