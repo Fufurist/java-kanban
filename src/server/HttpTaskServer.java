@@ -6,12 +6,15 @@ import managers.TaskManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class HttpTaskServer {
     private static final int SOCKET = 8080;
 
     private final HttpServer server;
     static final TaskManager taskManager = Managers.getDefault();
+    static final Charset SERVER_DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
 
     public HttpTaskServer() {

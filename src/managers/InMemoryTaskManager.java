@@ -250,6 +250,7 @@ public class InMemoryTaskManager implements TaskManager {
             freeIds.add(id);
             tasks.remove(id);
             history.remove(id);
+            return true;
         }
         return false;
     }
@@ -267,6 +268,7 @@ public class InMemoryTaskManager implements TaskManager {
             }
             epics.remove(id);
             history.remove(id);
+            return true;
         }
         return false;
     }
@@ -281,6 +283,7 @@ public class InMemoryTaskManager implements TaskManager {
             freeIds.add(id);
             subTasks.remove(id);
             history.remove(id);
+            return true;
         }
         return false;
     }
