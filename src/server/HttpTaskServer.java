@@ -10,21 +10,23 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class HttpTaskServer {
-    private static final int SOCKET = 8080;
+    private final int socket;
 
     private final HttpServer server;
-    static final TaskManager taskManager = Managers.getDefault();
+    private final TaskManager taskManager = Managers.getDefault();
     static final Charset SERVER_DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
 
-    public HttpTaskServer() {
+    public HttpTaskServer(int socket) {
         try {
-            server = HttpServer.create(new InetSocketAddress(SOCKET), 0);
-            server.createContext("/tests", new TasksHandler());
-            server.createContext("/epics", new EpicsHandler());
-            server.createContext("/subtasks", new SubTasksHandler());
-            server.createContext("/history", new HistoryHandler());
-            server.createContext("/prioritized", new PrioritizedHandler());
+            this.socket = socket;
+            server = HttpServer.create(new InetSocketAddress(this.socket), 0);
+            //Почему-то меня переклинило на то, что хендлеры создаются уже внутри контекста.
+            server.createContext("/tests", new TasksHandler(taskManager));
+            server.createContext("/epics", new EpicsHandler(taskManager));
+            server.createContext("/subtasks", new SubTasksHandler(taskManager));
+            server.createContext("/history", new HistoryHandler(taskManager));
+            server.createContext("/prioritized", new PrioritizedHandler(taskManager));
         } catch (IOException e) {
             throw new RuntimeException("IO не избежать! Сервер не стоит. Попробуй снова", e);
         }

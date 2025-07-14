@@ -48,4 +48,6 @@ public interface TaskManager {
     void clearEpics();
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
 }

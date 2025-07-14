@@ -2,17 +2,23 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
+import managers.TaskManager;
 import taskunits.Task;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
-import static server.HttpTaskServer.taskManager;
 
 public class TasksHandler extends BaseHttpHandler {
+
+    protected TasksHandler(TaskManager taskManager){
+        super(taskManager);
+    }
 
     @Override
     public void handle(HttpExchange exchange) {
@@ -26,14 +32,24 @@ public class TasksHandler extends BaseHttpHandler {
             Task task;
             switch (exchange.getRequestMethod()) {
                 case "GET":
-                    // По ТЗ не указана возможность неправильного пути(А именно какую ошибку кидать в этом случае),
-                    // поэтому действую из предположения, что на том конце сидит приложение, которое точно знает все
-                    // эндпоинты и правильно посылает данные
-                    // (То есть этот парс мне не даст ошибки при правильной работе фронтэнда)
-                    id = Integer.parseInt(path[2]);
-                    task = taskManager.getTaskById(id);
-                    if (task == null) sendNotFound(exchange);
-                    else sendText(exchange, gson.toJson(task));
+                    switch (path.length) {
+                        case 3:
+                            try {
+                                id = Integer.parseInt(path[2]);
+                            } catch (NumberFormatException e) {
+                                throw new NoSuchEndpoint("Id should be int", e);
+                            }
+                            task = taskManager.getTaskById(id);
+                            if (task == null) sendNotFound(exchange);
+                            else sendText(exchange, 200, gson.toJson(task));
+                            break;
+                        case 2:
+                            //А, ну да, токены нужны ведь только при десериализации.
+                            sendText(exchange, 200, gson.toJson(taskManager.getTasks()));
+                            break;
+                        default:
+                            throw new NoSuchEndpoint("No valuable path for GET " + exchange.getRequestURI().toString());
+                    }
                     break;
                 case "POST":
                     try (InputStream iS = exchange.getRequestBody()) {
@@ -41,23 +57,26 @@ public class TasksHandler extends BaseHttpHandler {
                         if (task.getId() <= 0) {
                             id = taskManager.addTask(task);
                             if (id == -1) sendHasOverlaps(exchange);
-                            sendText(exchange, null);
+                            sendText(exchange, 201, gson.toJson(id));
                         } else {
                             boolean success = taskManager.updateTask(task);
                             if (!success) sendHasOverlaps(exchange);
-                            sendText(exchange, null);
+                            sendText(exchange, 201, gson.toJson(task.getId()));
                         }
                     }
                     break;
                 case "DELETE":
                     //В ТЗ есть табличка с эндпоинтами, в которой нет удаления всех задач/подзадач/эпиков
                     id = Integer.parseInt(path[2]);
-                    taskManager.removeTask(id);
+                    if (taskManager.removeTask(id)) {
+                        sendText(exchange, 200, "\"result\":\"Deleted.\"");
+                    } else {
+                        //Запрос к Delete не предполагает ответа 404, поэтому просто меняем тело при неудаче
+                        sendText(exchange, 200, "\"result\":\"No such element.\"");
+                    }
                     break;
                 default:
-                    // В ТЗ не указано. Допустим, фронтэнд приложение отправляет только правильно
-                    // сгенерированные экземпляры классов, и только по правильным адресам
-                    break;
+                    throw new NoSuchEndpoint("Unknown method " + exchange.getRequestMethod());
             }
         } catch (IOException e) {
             try {
