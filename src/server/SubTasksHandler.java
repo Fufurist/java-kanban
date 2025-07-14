@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import managers.TaskManager;
 import taskunits.SubTask;
-import taskunits.Task;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +14,7 @@ import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
 
 public class SubTasksHandler extends BaseHttpHandler {
 
-    protected SubTasksHandler(TaskManager taskManager){
+    protected SubTasksHandler(TaskManager taskManager) {
         super(taskManager);
     }
 

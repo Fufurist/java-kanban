@@ -1,6 +1,6 @@
 package server;
 
-public class NoSuchEndpoint extends RuntimeException{
+public class NoSuchEndpoint extends RuntimeException {
     public NoSuchEndpoint(String message) {
         super(message);
     }

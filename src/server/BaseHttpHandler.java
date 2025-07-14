@@ -12,7 +12,7 @@ import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
 public abstract class BaseHttpHandler implements HttpHandler {
     protected TaskManager taskManager;
 
-    public BaseHttpHandler(TaskManager taskManager){
+    public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -30,5 +30,5 @@ public abstract class BaseHttpHandler implements HttpHandler {
 
     protected void sendHasOverlaps(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(406, -1);
- }
+    }
 }

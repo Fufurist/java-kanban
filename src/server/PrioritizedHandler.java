@@ -3,7 +3,6 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
 
 import java.io.IOException;
@@ -11,7 +10,7 @@ import java.time.LocalDateTime;
 
 public class PrioritizedHandler extends BaseHttpHandler {
 
-    protected PrioritizedHandler(TaskManager taskManager){
+    protected PrioritizedHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
@@ -22,7 +21,7 @@ public class PrioritizedHandler extends BaseHttpHandler {
                 .create();
 
         try {
-            if (exchange.getRequestMethod().equals("GET")){
+            if (exchange.getRequestMethod().equals("GET")) {
                 sendText(exchange, 200, gson.toJson(taskManager.getPrioritizedTasks())); //ArrayList<Task>
             } else throw new NoSuchEndpoint("Unknown method " + exchange.getRequestMethod());
         } catch (IOException e) {

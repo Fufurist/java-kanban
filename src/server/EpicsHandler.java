@@ -14,7 +14,7 @@ import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
 
 public class EpicsHandler extends BaseHttpHandler {
 
-    public EpicsHandler(TaskManager taskManager){
+    public EpicsHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
@@ -41,7 +41,7 @@ public class EpicsHandler extends BaseHttpHandler {
                             }
                             epic = taskManager.getEpicById(id);
                             if (epic == null) sendNotFound(exchange);
-                            //Путь пока так. Если надо возвращать список подзадач - поменяю, это быстро
+                                //Путь пока так. Если надо возвращать список подзадач - поменяю, это быстро
                             else sendText(exchange, 200, gson.toJson(epic.getSubTasksIds()));
                             break;
                         case 3:
@@ -71,7 +71,8 @@ public class EpicsHandler extends BaseHttpHandler {
                             //if (id == -1) sendHasOverlaps(exchange);
                             sendText(exchange, 201, gson.toJson(id));
                         } else {
-                            /*boolean success =*/ taskManager.updateEpic(epic);
+                            /*boolean success =*/
+                            taskManager.updateEpic(epic);
                             //if (!success) sendHasOverlaps(exchange);
                             sendText(exchange, 201, gson.toJson(epic.getId()));
                         }

@@ -2,7 +2,6 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import managers.TaskManager;
 import taskunits.Task;
@@ -10,13 +9,12 @@ import taskunits.Task;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
 
 public class TasksHandler extends BaseHttpHandler {
 
-    protected TasksHandler(TaskManager taskManager){
+    protected TasksHandler(TaskManager taskManager) {
         super(taskManager);
     }
 

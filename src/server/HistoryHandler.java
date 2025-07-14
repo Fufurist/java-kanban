@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 public class HistoryHandler extends BaseHttpHandler {
 
-    protected HistoryHandler(TaskManager taskManager){
+    protected HistoryHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
@@ -21,7 +21,7 @@ public class HistoryHandler extends BaseHttpHandler {
                 .create();
 
         try {
-            if (exchange.getRequestMethod().equals("GET")){
+            if (exchange.getRequestMethod().equals("GET")) {
                 sendText(exchange, 200, gson.toJson(taskManager.getHistory())); //ArrayList<Task>
             } else throw new NoSuchEndpoint("Unknown method " + exchange.getRequestMethod());
         } catch (IOException e) {
