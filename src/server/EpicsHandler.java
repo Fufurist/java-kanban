@@ -41,7 +41,7 @@ public class EpicsHandler extends BaseHttpHandler {
                             }
                             epic = taskManager.getEpicById(id);
                             if (epic == null) sendNotFound(exchange);
-                                //Путь пока так. Если надо возвращать список подзадач - поменяю, это быстро
+                                //Ну, я и вызываю getSubTasksIds, который возвращает список id
                             else sendText(exchange, 200, gson.toJson(epic.getSubTasksIds()));
                             break;
                         case 3:
@@ -67,13 +67,9 @@ public class EpicsHandler extends BaseHttpHandler {
                         epic = gson.fromJson(new String(iS.readAllBytes(), SERVER_DEFAULT_CHARSET), Epic.class);
                         if (epic.getId() <= 0) {
                             id = taskManager.addEpic(epic);
-                            // В комменте, потому что недостижимо, и не требуется по ТЗ
-                            //if (id == -1) sendHasOverlaps(exchange);
                             sendText(exchange, 201, gson.toJson(id));
                         } else {
-                            /*boolean success =*/
                             taskManager.updateEpic(epic);
-                            //if (!success) sendHasOverlaps(exchange);
                             sendText(exchange, 201, gson.toJson(epic.getId()));
                         }
                     }

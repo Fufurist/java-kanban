@@ -25,7 +25,11 @@ public class TasksHandler extends BaseHttpHandler {
                 .create();
 
         try {
+            // exchange.sendResponseHeaders(500, 0);
+            // exchange.close(); // Работает
+            // sendText(exchange, 500, "WHYYYYYY"); //Работает
             String[] path = exchange.getRequestURI().toString().split("/");
+            // System.out.println(path.length); //выводится дважды
             int id;
             Task task;
             switch (exchange.getRequestMethod()) {

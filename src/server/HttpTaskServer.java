@@ -13,16 +13,17 @@ public class HttpTaskServer {
     private final int socket;
 
     private final HttpServer server;
-    private final TaskManager taskManager = Managers.getDefault();
+    private final TaskManager taskManager;
     static final Charset SERVER_DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
 
-    public HttpTaskServer(int socket) {
+    public HttpTaskServer(int socket, TaskManager taskManager) {
         try {
             this.socket = socket;
+            this.taskManager = taskManager;
             server = HttpServer.create(new InetSocketAddress(this.socket), 0);
             //Почему-то меня переклинило на то, что хендлеры создаются уже внутри контекста.
-            server.createContext("/tests", new TasksHandler(taskManager));
+            server.createContext("/tasks", new TasksHandler(taskManager));
             server.createContext("/epics", new EpicsHandler(taskManager));
             server.createContext("/subtasks", new SubTasksHandler(taskManager));
             server.createContext("/history", new HistoryHandler(taskManager));
