@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpExchange;
 import managers.TaskManager;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class HistoryHandler extends BaseHttpHandler {
@@ -18,6 +19,7 @@ public class HistoryHandler extends BaseHttpHandler {
     public void handle(HttpExchange exchange) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new GsonDateTimeCustomParse())
+                .registerTypeAdapter(Duration.class, new DurationTypeAdapter())
                 .create();
 
         try {

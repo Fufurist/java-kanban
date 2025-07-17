@@ -8,6 +8,7 @@ import taskunits.Task;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
@@ -22,14 +23,11 @@ public class TasksHandler extends BaseHttpHandler {
     public void handle(HttpExchange exchange) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new GsonDateTimeCustomParse())
+                .registerTypeAdapter(Duration.class, new DurationTypeAdapter())
                 .create();
 
         try {
-            // exchange.sendResponseHeaders(500, 0);
-            // exchange.close(); // Работает
-            // sendText(exchange, 500, "WHYYYYYY"); //Работает
             String[] path = exchange.getRequestURI().toString().split("/");
-            // System.out.println(path.length); //выводится дважды
             int id;
             Task task;
             switch (exchange.getRequestMethod()) {
@@ -59,11 +57,11 @@ public class TasksHandler extends BaseHttpHandler {
                         if (task.getId() <= 0) {
                             id = taskManager.addTask(task);
                             if (id == -1) sendHasOverlaps(exchange);
-                            sendText(exchange, 201, gson.toJson(id));
+                            else sendText(exchange, 201, gson.toJson(id));
                         } else {
                             boolean success = taskManager.updateTask(task);
                             if (!success) sendHasOverlaps(exchange);
-                            sendText(exchange, 201, gson.toJson(task.getId()));
+                            else sendText(exchange, 201, gson.toJson(task.getId()));
                         }
                     }
                     break;

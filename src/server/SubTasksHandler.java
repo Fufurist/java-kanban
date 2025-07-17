@@ -8,6 +8,7 @@ import taskunits.SubTask;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
@@ -22,6 +23,7 @@ public class SubTasksHandler extends BaseHttpHandler {
     public void handle(HttpExchange exchange) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new GsonDateTimeCustomParse())
+                .registerTypeAdapter(Duration.class, new DurationTypeAdapter())
                 .create();
 
         try {
@@ -55,11 +57,11 @@ public class SubTasksHandler extends BaseHttpHandler {
                         if (subTask.getId() <= 0) {
                             id = taskManager.addSubTask(subTask);
                             if (id == -1) sendHasOverlaps(exchange);
-                            sendText(exchange, 201, gson.toJson(id));
+                            else sendText(exchange, 201, gson.toJson(id));
                         } else {
                             boolean success = taskManager.updateSubTask(subTask);
                             if (!success) sendHasOverlaps(exchange);
-                            sendText(exchange, 201, gson.toJson(subTask.getId()));
+                            else sendText(exchange, 201, gson.toJson(subTask.getId()));
                         }
                     }
                     break;

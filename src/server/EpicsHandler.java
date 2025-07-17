@@ -8,6 +8,7 @@ import taskunits.Epic;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static server.HttpTaskServer.SERVER_DEFAULT_CHARSET;
@@ -22,6 +23,7 @@ public class EpicsHandler extends BaseHttpHandler {
     public void handle(HttpExchange exchange) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new GsonDateTimeCustomParse())
+                .registerTypeAdapter(Duration.class, new DurationTypeAdapter())
                 .create();
 
         try {
