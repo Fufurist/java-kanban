@@ -250,6 +250,7 @@ public class InMemoryTaskManager implements TaskManager {
             freeIds.add(id);
             tasks.remove(id);
             history.remove(id);
+            return true;
         }
         return false;
     }
@@ -267,6 +268,7 @@ public class InMemoryTaskManager implements TaskManager {
             }
             epics.remove(id);
             history.remove(id);
+            return true;
         }
         return false;
     }
@@ -281,6 +283,7 @@ public class InMemoryTaskManager implements TaskManager {
             freeIds.add(id);
             subTasks.remove(id);
             history.remove(id);
+            return true;
         }
         return false;
     }
@@ -403,8 +406,11 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    public NavigableSet<Task> getPrioritizedTasks() {
-        return new TreeSet<>(prioritySortedTaskSet);
+    public List<Task> getPrioritizedTasks() {
+        // List проще по структуре и компактнее. Отправлять буду его
+        // Конструктор строит лист в порядке, в котором элементы возвращает итератор коллекции оборачиваемой в него.
+        // Поэтому сортированный порядок приоритета сохранится, а что что с этим списком будет дальше - нам не важно
+        return new ArrayList<>(prioritySortedTaskSet);
     }
 
 

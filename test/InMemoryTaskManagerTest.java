@@ -20,7 +20,7 @@ class InMemoryTaskManagerTest {
         Task newTask = new Task("Помыть посуду",//id - 1
                 "Прийти на кухню и вымыть все грязные тарелки",
                 TaskStatus.IN_PROGRESS,
-                LocalDateTime.of(2025,7,12,12,0),
+                LocalDateTime.of(2025, 7, 12, 12, 0),
                 Duration.ofMinutes(30));
         taskManager.addTask(newTask);
         Epic newEpic = new Epic("Сделать домашку",// id - 2
@@ -29,14 +29,14 @@ class InMemoryTaskManagerTest {
         SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
                 "Достать Тетрадь достать Демидовича сделать номера ...",
                 TaskStatus.NEW,
-                LocalDateTime.of(2025,7,12,12,0).plusMinutes(30),
+                LocalDateTime.of(2025, 7, 12, 12, 0).plusMinutes(30),
                 Duration.ofMinutes(30),
                 2);
         taskManager.addSubTask(newSubTask);
         newTask = new Task("Подмести пол",//id - 4
                 "Достать совок и метлу смести мусор в совок выкинуть мусор из совка",
                 TaskStatus.NEW,
-                LocalDateTime.of(2025,7,12,12,0).plusMinutes(60),
+                LocalDateTime.of(2025, 7, 12, 12, 0).plusMinutes(60),
                 Duration.ofMinutes(30));
         taskManager.addTask(newTask);
         newEpic = new Epic("Успеть всё",//id - 5
@@ -45,14 +45,14 @@ class InMemoryTaskManagerTest {
         newSubTask = new SubTask("Сделать ДЗ по Диффурам",//id - 6
                 "Достать Тетрадь достать Филлипова сделать номера ...",
                 TaskStatus.NEW,
-                LocalDateTime.of(2025,7,12,12,0).plusMinutes(90),
+                LocalDateTime.of(2025, 7, 12, 12, 0).plusMinutes(90),
                 Duration.ofMinutes(30),
                 2);
         taskManager.addSubTask(newSubTask);
         newSubTask = new SubTask("Быстро выполнить пятый спринт",//id - 7
                 "Поторопись! До конца света осталось всего ничего!",
                 TaskStatus.NEW,
-                LocalDateTime.of(2025,7,12,12,0).plusMinutes(120),
+                LocalDateTime.of(2025, 7, 12, 12, 0).plusMinutes(120),
                 Duration.ofMinutes(30),
                 5);
         taskManager.addSubTask(newSubTask);
@@ -62,7 +62,7 @@ class InMemoryTaskManagerTest {
     public void taskEqualsTest() {
         Task newTask = new Task("Bla-bla", "Bla-Bla-Bla",
                 TaskStatus.DONE,
-                LocalDateTime.of(0,1,1,0,0),
+                LocalDateTime.of(0, 1, 1, 0, 0),
                 Duration.ofMinutes(80));
         newTask.setId(4);
         Assertions.assertEquals(newTask, taskManager.getTaskById(4));
@@ -75,7 +75,7 @@ class InMemoryTaskManagerTest {
     public void subEpicSubTask() {
         SubTask newSubtask = new SubTask("Bla", "Bla-bla",
                 TaskStatus.IN_PROGRESS,
-                LocalDateTime.of(0,1,1,0,0),
+                LocalDateTime.of(0, 1, 1, 0, 0),
                 Duration.ofMinutes(80),
                 8);//id - 8
         Assertions.assertEquals(-1, taskManager.addSubTask(newSubtask));
@@ -86,7 +86,7 @@ class InMemoryTaskManagerTest {
         Task newTask = new Task("Помыть посуду",//id - 1
                 "Прийти на кухню и вымыть все грязные тарелки",
                 TaskStatus.IN_PROGRESS,
-                LocalDateTime.of(2025,7,12,12,0),
+                LocalDateTime.of(2025, 7, 12, 12, 0),
                 Duration.ofMinutes(30));
         newTask.setId(1);
         Assertions.assertEquals(newTask.toString(), taskManager.getTaskById(1).toString());
@@ -98,8 +98,8 @@ class InMemoryTaskManagerTest {
         Assertions.assertEquals(newEpic.toString(), taskManager.getEpicById(2).toString());
         SubTask newSubTask = new SubTask("Сделать ДЗ по Матану", // id - 3
                 "Достать Тетрадь достать Демидовича сделать номера ...", TaskStatus.NEW,
-                LocalDateTime.of(2025,7,12,12,0).plusMinutes(30),
-                Duration.ofMinutes(30),  2);
+                LocalDateTime.of(2025, 7, 12, 12, 0).plusMinutes(30),
+                Duration.ofMinutes(30), 2);
         newSubTask.setId(3);
         Assertions.assertEquals(newSubTask.toString(), taskManager.getSubTaskById(3).toString());
         Assertions.assertEquals(newSubTask.getEpicId(), taskManager.getSubTaskById(3).getEpicId());
@@ -112,7 +112,7 @@ class InMemoryTaskManagerTest {
         Epic thirdMember = taskManager.getEpicById(5);
         SubTask fourthMember = taskManager.getSubTaskById(3);
         Task fifthMember = new Task("Bla-bla", "Bla", TaskStatus.DONE,
-                LocalDateTime.of(0,1,1,0,0), Duration.ofMinutes(80));
+                LocalDateTime.of(0, 1, 1, 0, 0), Duration.ofMinutes(80));
         fifthMember.setId(4);
         taskManager.updateTask(fifthMember);//изменили один из них
         fifthMember = taskManager.getTaskById(4);
